@@ -1,42 +1,36 @@
-import { ArrowLeft, Eye, Edit2, Trash2, Download } from 'lucide-react';
+import { Eye, Edit2, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { Badge } from './ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
-import { Label } from './ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Layout } from './Layout';
-import { useState, useRef } from 'react';
-import QRCode from 'react-qr-code';
-import jsPDF from 'jspdf';
+import { useState } from 'react';
+import { ViewType } from '../App';
 
 const vouchers = [
-  { id: 1, name: 'Room/food/YVehiv', vendor: 'Vendor C', discount: '15% OFF', validity: '01/08/2025', status: 'Expired', redemption: '50/100' },
-  { id: 2, name: 'Room/food/YVehiv', vendor: 'Vendor D', discount: '15% OFF', validity: '01/08/2025', status: 'Completed', redemption: '50/100' },
-  { id: 3, name: 'Room/food/YVehiv', vendor: 'Vendor E', discount: '15% OFF', validity: '01/08/2025', status: 'Redeemed', redemption: '50/100' },
-  { id: 4, name: 'Room/food/YVehiv', vendor: 'Vendor E', discount: '15% OFF', validity: '01/08/2025', status: 'Active', redemption: '50/100' },
-  { id: 5, name: 'Room/food/YVehiv', vendor: 'Vendor E', discount: '15% OFF', validity: '01/08/2025', status: 'Active', redemption: '50/100' },
-  { id: 6, name: 'Room/food/YVehiv', vendor: 'Vendor E', discount: '15% OFF', validity: '01/08/2025', status: 'Active', redemption: '50/100' },
-  { id: 7, name: 'Room/food/YVehiv', vendor: 'Vendor E', discount: '15% OFF', validity: '01/08/2025', status: 'Redeemed', redemption: '50/100' },
-  { id: 8, name: 'Room/food/YVehiv', vendor: 'Vendor E', discount: '15% OFF', validity: '01/08/2025', status: 'Redeemed', redemption: '50/100' },
+  { id: '#6252', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Beach Cleanup', amount: 'R1900.00', user: 'Manila Mayo', status: 'Redeemed' },
+  { id: '#6253', date: 'Aug 20,2025', corporate: 'Pick n Pay', campaign: 'Summer Drive', amount: 'R15 000.00', user: 'John Smith', status: 'Available' },
+  { id: '#6254', date: 'Aug 20,2025', corporate: 'Checkers', campaign: 'Winter Sale', amount: 'R15 000.00', user: 'Jane Doe', status: 'Expired' },
+  { id: '#6255', date: 'Aug 20,2025', corporate: 'Shoprite', campaign: 'Black Friday', amount: 'R8 000.00', user: 'Bob Johnson', status: 'Redeemed' },
+  { id: '#6256', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Holiday Special', amount: 'R12 000.00', user: 'Alice Brown', status: 'Available' },
 ];
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'Active':
-      return 'bg-green-100 text-green-700 hover:bg-green-100';
-    case 'Expired':
-      return 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100';
-    case 'Completed':
-      return 'bg-indigo-100 text-indigo-700 hover:bg-indigo-100';
     case 'Redeemed':
-      return 'bg-pink-100 text-pink-700 hover:bg-pink-100';
+      return 'bg-green-100 text-green-700 hover:bg-green-100';
+    case 'Available':
+      return 'bg-blue-100 text-blue-700 hover:bg-blue-100';
+    case 'Expired':
+      return 'bg-red-100 text-red-700 hover:bg-red-100';
     default:
       return 'bg-gray-100 text-gray-700 hover:bg-gray-100';
   }
 };
 
-export function VoucherManagement() {
+interface VoucherManagementProps {
+  onNavigate?: (view: ViewType) => void;
+}
+
+export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
   const [viewVoucherOpen, setViewVoucherOpen] = useState(false);
   const [editVoucherOpen, setEditVoucherOpen] = useState(false);
   const [deleteVoucherOpen, setDeleteVoucherOpen] = useState(false);
@@ -152,7 +146,7 @@ export function VoucherManagement() {
 
   return (
     <>
-      <Layout>
+      <Layout onNavigate={onNavigate}>
         <div className="p-6 bg-[#F5F5FA] min-h-full">
           <h1 className="mb-6">Voucher Management</h1>
 

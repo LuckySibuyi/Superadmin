@@ -72,7 +72,11 @@
     --color-green-500: oklch(.723 .219 149.579);
     --color-green-600: oklch(.627 .194 149.214);
     --color-green-700: oklch(.527 .154 150.069);
+    --color-blue-50: oklch(.97 .014 254.604);
+    --color-blue-100: oklch(.932 .032 255.585);
     --color-blue-500: oklch(.623 .214 259.815);
+    --color-blue-600: oklch(.546 .245 262.881);
+    --color-blue-700: oklch(.488 .243 264.376);
     --color-indigo-50: oklch(.962 .018 272.314);
     --color-indigo-100: oklch(.93 .034 272.788);
     --color-indigo-500: oklch(.585 .233 277.117);
@@ -85,6 +89,7 @@
     --color-gray-50: oklch(.985 .002 247.839);
     --color-gray-100: oklch(.967 .003 264.542);
     --color-gray-200: oklch(.928 .006 264.531);
+    --color-gray-300: oklch(.872 .01 258.338);
     --color-gray-500: oklch(.551 .027 264.364);
     --color-gray-600: oklch(.446 .03 256.802);
     --color-gray-700: oklch(.373 .034 259.733);
@@ -493,6 +498,10 @@
     top: 50%;
   }
 
+  .top-full {
+    top: 100%;
+  }
+
   .-right-1 {
     right: calc(var(--spacing) * -1);
   }
@@ -545,6 +554,10 @@
     z-index: 50;
   }
 
+  .col-span-3 {
+    grid-column: span 3 / span 3;
+  }
+
   .col-start-2 {
     grid-column-start: 2;
   }
@@ -567,6 +580,10 @@
 
   .mt-1 {
     margin-top: calc(var(--spacing) * 1);
+  }
+
+  .mt-1\.5 {
+    margin-top: calc(var(--spacing) * 1.5);
   }
 
   .mt-2 {
@@ -620,12 +637,20 @@
     overflow: hidden;
   }
 
+  .block {
+    display: block;
+  }
+
   .flex {
     display: flex;
   }
 
   .grid {
     display: grid;
+  }
+
+  .hidden {
+    display: none;
   }
 
   .inline-block {
@@ -761,6 +786,14 @@
     max-height: var(--radix-select-content-available-height);
   }
 
+  .max-h-\[400px\] {
+    max-height: 400px;
+  }
+
+  .max-h-\[500px\] {
+    max-height: 500px;
+  }
+
   .min-h-4 {
     min-height: calc(var(--spacing) * 4);
   }
@@ -779,6 +812,10 @@
 
   .min-h-screen {
     min-height: 100vh;
+  }
+
+  .w-2 {
+    width: calc(var(--spacing) * 2);
   }
 
   .w-3 {
@@ -859,6 +896,10 @@
 
   .w-\[225\.56\%\] {
     width: 225.56%;
+  }
+
+  .w-\[380px\] {
+    width: 380px;
   }
 
   .w-fit {
@@ -1219,8 +1260,20 @@
     }
   }
 
+  .bg-blue-50 {
+    background-color: var(--color-blue-50);
+  }
+
+  .bg-blue-100 {
+    background-color: var(--color-blue-100);
+  }
+
   .bg-blue-500 {
     background-color: var(--color-blue-500);
+  }
+
+  .bg-blue-600 {
+    background-color: var(--color-blue-600);
   }
 
   .bg-border {
@@ -1245,6 +1298,10 @@
 
   .bg-gray-200 {
     background-color: var(--color-gray-200);
+  }
+
+  .bg-gray-300 {
+    background-color: var(--color-gray-300);
   }
 
   .bg-green-100 {
@@ -1379,6 +1436,10 @@
 
   .p-1 {
     padding: calc(var(--spacing) * 1);
+  }
+
+  .p-3 {
+    padding: calc(var(--spacing) * 3);
   }
 
   .p-4 {
@@ -1575,6 +1636,10 @@
 
   .text-\[\#7878AB\] {
     color: #7878ab;
+  }
+
+  .text-blue-700 {
+    color: var(--color-blue-700);
   }
 
   .text-card-foreground {
@@ -1911,6 +1976,11 @@
     border-width: 0;
   }
 
+  .last\:border-b-0:last-child {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 0;
+  }
+
   @media (hover: hover) {
     .hover\:bg-\[\#6B51D4\]:hover {
       background-color: #6b51d4;
@@ -1920,6 +1990,12 @@
   @media (hover: hover) {
     .hover\:bg-accent:hover {
       background-color: var(--accent);
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:bg-blue-100:hover {
+      background-color: var(--color-blue-100);
     }
   }
 
@@ -1944,6 +2020,12 @@
   @media (hover: hover) {
     .hover\:bg-gray-100:hover {
       background-color: var(--color-gray-100);
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:bg-gray-200:hover {
+      background-color: var(--color-gray-200);
     }
   }
 
@@ -2034,6 +2116,12 @@
   @media (hover: hover) {
     .hover\:bg-yellow-100:hover {
       background-color: var(--color-yellow-100);
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:text-\[\#6B51D4\]:hover {
+      color: #6b51d4;
     }
   }
 
@@ -2304,6 +2392,12 @@
 
   .data-\[state\=open\]\:zoom-in-95[data-state="open"] {
     --tw-enter-scale: .95;
+  }
+
+  @media (width >= 40rem) {
+    .sm\:max-w-\[425px\] {
+      max-width: 425px;
+    }
   }
 
   @media (width >= 40rem) {

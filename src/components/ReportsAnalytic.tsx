@@ -1,59 +1,203 @@
-import { FileDown, Calendar, Star } from 'lucide-react';
+import { Layout } from './Layout';
+import { ViewType } from '../App';
 import { Button } from './ui/button';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { Layout } from './Layout';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { FileDown, Calendar, Star, ArrowUpDown, ChevronDown, FileSpreadsheet, FileText } from 'lucide-react';
+import { BarChart, Bar, PieChart, Pie, Cell, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { useState } from 'react';
+import jsPDF from 'jspdf';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Label } from './ui/label';
+import { Input } from './ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const contributionData = [
-  { month: 'Jan', value: 120 },
-  { month: 'Feb', value: 140 },
-  { month: 'Mar', value: 160 },
-  { month: 'Apr', value: 180 },
-  { month: 'May', value: 200 },
+  { month: 'Jan', value: 45000 },
+  { month: 'Feb', value: 52000 },
+  { month: 'Mar', value: 48000 },
+  { month: 'Apr', value: 61000 },
+  { month: 'May', value: 55000 },
+  { month: 'Jun', value: 67000 },
 ];
 
 const vendorsData = [
-  {
-    name: 'Banquet Hotel',
-    rating: 4,
-    reviews: 820,
-    image: 'https://images.unsplash.com/photo-1695619881322-0e41b49f9d3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzZWF2aWV3JTIwaG90ZWx8ZW58MXx8fHwxNzYyNjkzNzgxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-  },
-  {
-    name: 'Durban Hotel',
-    rating: 4,
-    reviews: 8800,
-    image: 'https://images.unsplash.com/photo-1655551998935-2c6a43f7d67d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnaXJhZmZlJTIwaG90ZWx8ZW58MXx8fHwxNzYyNjkzNzgyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-  },
-  {
-    name: 'Tastelofuls Catering',
-    rating: 4,
-    reviews: 820,
-    image: 'https://images.unsplash.com/photo-1690299564220-70b5329e887e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYW5xdWV0JTIwY2F0ZXJpbmd8ZW58MXx8fHwxNzYyNjkzNzgyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-  },
-  {
-    name: 'Paradise resort',
-    rating: 4,
-    reviews: 820,
-    image: 'https://images.unsplash.com/photo-1651213084058-c3420ea21852?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwYXJhZGlzZSUyMHJlc29ydCUyMHBvb2x8ZW58MXx8fHwxNzYyNjkzNzgyfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-  },
+  { name: 'Woolworths', rating: 5, reviews: 234, image: 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?w=100&h=100&fit=crop' },
+  { name: 'Pick n Pay', rating: 4, reviews: 189, image: 'https://images.unsplash.com/photo-1601598851547-4302969d0614?w=100&h=100&fit=crop' },
+  { name: 'Checkers', rating: 5, reviews: 156, image: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=100&h=100&fit=crop' },
 ];
 
 const pieData = [
-  { name: 'Accommodation', value: 40, color: '#4f46e5' },
-  { name: 'Transport', value: 20, color: '#06b6d4' },
-  { name: 'Food', value: 25, color: '#8b5cf6' },
-  { name: 'Activity', value: 15, color: '#ec4899' },
+  { name: 'Environmental', value: 35, color: '#10B981' },
+  { name: 'Education', value: 25, color: '#8B5CF6' },
+  { name: 'Healthcare', value: 20, color: '#3B82F6' },
+  { name: 'Community', value: 20, color: '#F59E0B' },
 ];
 
-const reports = [
-  { name: 'Total Contribution', value: 'R258,500', date: '2025/02/02', user: '1200+' },
-  { name: 'Total active users', value: 'R2,500', date: '2025/02/02', user: '1200+' },
+const reportsData = [
+  { name: 'Monthly Campaign Report', value: 'R249,500', date: 'Dec 18, 2025', user: 'Admin User' },
+  { name: 'User Activity Report', value: '1,200 users', date: 'Dec 17, 2025', user: 'System' },
+  { name: 'Vendor Performance', value: '80 vendors', date: 'Dec 16, 2025', user: 'Admin User' },
+  { name: 'Transaction Summary', value: 'R1.2M', date: 'Dec 15, 2025', user: 'Finance Team' },
+  { name: 'Voucher Usage Report', value: '450 vouchers', date: 'Dec 14, 2025', user: 'Admin User' },
 ];
 
-export function ReportsAnalytic() {
+interface ReportsAnalyticProps {
+  onNavigate?: (view: ViewType) => void;
+}
+
+export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
+  const [reports, setReports] = useState(reportsData);
+  const [sortBy, setSortBy] = useState<'name' | 'date' | 'user'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedReportName, setSelectedReportName] = useState('');
+
+  // Sort reports
+  const sortedReports = [...reports].sort((a, b) => {
+    if (sortBy === 'name') {
+      return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+    } else if (sortBy === 'date') {
+      return sortOrder === 'asc' ? new Date(a.date).getTime() - new Date(b.date).getTime() : new Date(b.date).getTime() - new Date(a.date).getTime();
+    } else if (sortBy === 'user') {
+      return sortOrder === 'asc' ? a.user.localeCompare(b.user) : b.user.localeCompare(a.user);
+    }
+    return 0;
+  });
+
+  // Export to Excel (CSV format)
+  const exportToExcel = () => {
+    const headers = ['Report', 'Value', 'Date', 'User'];
+    const rows = sortedReports.map(report => [
+      report.name,
+      report.value,
+      report.date,
+      report.user
+    ]);
+
+    let csv = headers.join(',') + '\n';
+    rows.forEach(row => {
+      csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `reports_analytics_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export to PDF
+  const exportToPDF = () => {
+    const pdf = new jsPDF();
+    
+    // Add title
+    pdf.setFontSize(20);
+    pdf.text('Reports & Analytics', 14, 22);
+    
+    // Add date
+    pdf.setFontSize(10);
+    pdf.text(`Generated: ${new Date().toLocaleDateString()}`, 14, 30);
+    
+    // Add stats summary
+    pdf.setFontSize(12);
+    pdf.text('Summary Statistics', 14, 42);
+    pdf.setFontSize(10);
+    pdf.text('Total Active Users: 1,200', 14, 50);
+    pdf.text('Total Active Campaigns: 800', 14, 56);
+    pdf.text('Total Contribution: R249,500', 14, 62);
+    
+    // Add table header
+    pdf.setFontSize(12);
+    pdf.text('Reports', 14, 75);
+    
+    // Draw table manually
+    pdf.setFontSize(10);
+    let y = 85;
+    
+    // Table header
+    pdf.setFillColor(139, 92, 246);
+    pdf.rect(14, y, 182, 8, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.text('Report', 16, y + 6);
+    pdf.text('Value', 80, y + 6);
+    pdf.text('Date', 120, y + 6);
+    pdf.text('User', 160, y + 6);
+    
+    // Reset text color
+    pdf.setTextColor(0, 0, 0);
+    y += 10;
+    
+    // Table rows
+    sortedReports.forEach((report, index) => {
+      if (y > 270) {
+        pdf.addPage();
+        y = 20;
+      }
+      
+      // Alternate row background
+      if (index % 2 === 0) {
+        pdf.setFillColor(245, 245, 250);
+        pdf.rect(14, y - 2, 182, 8, 'F');
+      }
+      
+      // Truncate long text
+      const truncate = (text: string, maxLength: number) => {
+        return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+      };
+      
+      pdf.text(truncate(report.name, 25), 16, y + 4);
+      pdf.text(truncate(report.value, 15), 80, y + 4);
+      pdf.text(truncate(report.date, 15), 120, y + 4);
+      pdf.text(truncate(report.user, 15), 160, y + 4);
+      
+      y += 10;
+    });
+    
+    pdf.save(`reports_analytics_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  // Download individual report
+  const downloadReport = (reportName: string) => {
+    const report = reports.find(r => r.name === reportName);
+    if (!report) return;
+
+    const pdf = new jsPDF();
+    
+    pdf.setFontSize(20);
+    pdf.text(report.name, 14, 22);
+    
+    pdf.setFontSize(12);
+    pdf.text(`Value: ${report.value}`, 14, 35);
+    pdf.text(`Date: ${report.date}`, 14, 45);
+    pdf.text(`Generated by: ${report.user}`, 14, 55);
+    
+    pdf.setFontSize(10);
+    pdf.text('Report Details:', 14, 70);
+    pdf.text('This report contains comprehensive analytics and insights', 14, 78);
+    pdf.text('for the selected time period and parameters.', 14, 84);
+    
+    pdf.save(`${reportName.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  // Schedule report
+  const handleScheduleReport = (reportName: string) => {
+    setSelectedReportName(reportName);
+    setScheduleDialogOpen(true);
+  };
+
+  const submitSchedule = () => {
+    // In a real app, this would send to backend
+    alert(`Report "${selectedReportName}" has been scheduled successfully!`);
+    setScheduleDialogOpen(false);
+  };
+
   return (
-    <Layout>
+    <Layout onNavigate={onNavigate}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -64,14 +208,71 @@ export function ReportsAnalytic() {
               </Button>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              Sort by
-            </Button>
-            <Button variant="outline" className="gap-2">
+          <div className="flex gap-2 relative">
+            <div className="relative">
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setShowSortMenu(!showSortMenu)}
+              >
+                Sort by
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
+              {showSortMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowSortMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20 p-3">
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs text-gray-600 mb-1 block">Sort By</Label>
+                        <Select
+                          value={sortBy}
+                          onValueChange={(value) => setSortBy(value as 'name' | 'date' | 'user')}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="name">Name</SelectItem>
+                            <SelectItem value="date">Date</SelectItem>
+                            <SelectItem value="user">User</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-gray-600 mb-1 block">Order</Label>
+                        <Select
+                          value={sortOrder}
+                          onValueChange={(value) => setSortOrder(value as 'asc' | 'desc')}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="asc">Ascending</SelectItem>
+                            <SelectItem value="desc">Descending</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => setShowSortMenu(false)}
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+            <Button variant="outline" className="gap-2" onClick={exportToExcel}>
+              <FileSpreadsheet className="w-4 h-4" />
               Excel
             </Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+            <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2" onClick={exportToPDF}>
+              <FileText className="w-4 h-4" />
               PDF
             </Button>
           </div>
@@ -183,7 +384,7 @@ export function ReportsAnalytic() {
               </tr>
             </thead>
             <tbody>
-              {reports.map((report, index) => (
+              {sortedReports.map((report, index) => (
                 <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm">{report.name}</td>
                   <td className="px-6 py-4 text-sm">{report.value}</td>
@@ -191,11 +392,11 @@ export function ReportsAnalytic() {
                   <td className="px-6 py-4 text-sm">{report.user}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2">
+                      <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2" onClick={() => downloadReport(report.name)}>
                         <FileDown className="w-4 h-4" />
                         Download Report
                       </Button>
-                      <Button variant="outline" className="gap-2">
+                      <Button variant="outline" className="gap-2" onClick={() => handleScheduleReport(report.name)}>
                         <Calendar className="w-4 h-4" />
                         Schedule Report
                       </Button>
@@ -207,6 +408,54 @@ export function ReportsAnalytic() {
           </table>
         </div>
       </div>
+
+      {/* Schedule Report Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Schedule Report</DialogTitle>
+            <DialogDescription>
+              Schedule the report "{selectedReportName}" to be sent to your email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your.email@example.com"
+                className="col-span-3"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="frequency">Frequency</Label>
+              <Select>
+                <SelectTrigger className="w-full">
+                  <SelectValue>Weekly</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-900"
+              onClick={() => setScheduleDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" onClick={submitSchedule}>
+              Schedule
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

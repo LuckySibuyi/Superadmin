@@ -6,15 +6,17 @@ import { campaigns, campaignStats } from '../data/mockData';
 import { getStatusColor, formatCurrency } from '../utils/formatters';
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { ViewType } from '../App';
 
 interface CampaignsManagementProps {
   onViewCampaign?: (campaignId: string) => void;
+  onNavigate?: (view: ViewType) => void;
 }
 
 type FilterType = 'all' | 'active' | 'best-campaigns' | 'best-vendors';
 type SortType = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'raised-desc' | 'raised-asc' | 'vendors-desc' | 'vendors-asc';
 
-export function CampaignsManagement({ onViewCampaign }: CampaignsManagementProps) {
+export function CampaignsManagement({ onViewCampaign, onNavigate }: CampaignsManagementProps) {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('date-desc');
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -103,7 +105,7 @@ export function CampaignsManagement({ onViewCampaign }: CampaignsManagementProps
   };
 
   return (
-    <Layout>
+    <Layout onNavigate={onNavigate}>
       <div className="p-6">
         <h1 className="mb-6">Campaigns Management</h1>
 

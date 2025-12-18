@@ -4,10 +4,15 @@ import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Layout } from './Layout';
 import { users, userStats } from '../data/mockData';
+import { ViewType } from '../App';
 
-export function UserManagement() {
+interface UserManagementProps {
+  onNavigate?: (view: ViewType) => void;
+}
+
+export function UserManagement({ onNavigate }: UserManagementProps) {
   return (
-    <Layout>
+    <Layout onNavigate={onNavigate}>
       <div className="p-6">
         <h1 className="mb-6">User Management</h1>
 

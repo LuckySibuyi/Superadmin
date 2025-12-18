@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppProvider } from './contexts/AppContext';
 import { Sidebar } from './components/Sidebar';
 import { AdminOverview } from './components/AdminOverview';
@@ -26,11 +26,15 @@ export type ViewType =
 export default function App() {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | undefined>(undefined);
 
   const handleNavigate = (view: ViewType) => {
     setActiveView(view);
     if (view !== 'campaign-detail') {
       setSelectedCampaignId(null);
+    }
+    if (view !== 'transactions') {
+      setSelectedTransactionId(undefined);
     }
   };
 
@@ -44,36 +48,61 @@ export default function App() {
     setSelectedCampaignId(null);
   };
 
+  // Listen for custom events from notifications
+  useEffect(() => {
+    const handleNavigateToTransaction = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { transactionId } = customEvent.detail;
+      setSelectedTransactionId(transactionId);
+      setActiveView('transactions');
+    };
+
+    const handleNavigateToCampaign = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { campaignId } = customEvent.detail;
+      handleViewCampaign(campaignId);
+    };
+
+    window.addEventListener('navigate-to-transaction', handleNavigateToTransaction);
+    window.addEventListener('navigate-to-campaign', handleNavigateToCampaign);
+
+    return () => {
+      window.removeEventListener('navigate-to-transaction', handleNavigateToTransaction);
+      window.removeEventListener('navigate-to-campaign', handleNavigateToCampaign);
+    };
+  }, []);
+
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
         return <AdminOverview onNavigate={handleNavigate} />;
       
       case 'campaigns':
-        return <CampaignsManagement onViewCampaign={handleViewCampaign} />;
+        return <CampaignsManagement onViewCampaign={handleViewCampaign} onNavigate={handleNavigate} />;
       
       case 'campaign-detail':
         return (
           <CampaignDashboard 
             headerImage="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop"
             onClose={handleCloseCampaign}
+            onNavigate={handleNavigate}
           />
         );
       
       case 'vouchers':
-        return <VoucherManagement />;
+        return <VoucherManagement onNavigate={handleNavigate} />;
       
       case 'transactions':
-        return <TransactionManagement />;
+        return <TransactionManagement onNavigate={handleNavigate} selectedTransactionId={selectedTransactionId} />;
       
       case 'reports':
-        return <ReportsAnalytic />;
+        return <ReportsAnalytic onNavigate={handleNavigate} />;
       
       case 'members':
-        return <UserManagement />;
+        return <UserManagement onNavigate={handleNavigate} />;
       
       case 'profile':
-        return <UserProfile onClose={() => handleNavigate('dashboard')} />;
+        return <UserProfile onClose={() => handleNavigate('dashboard')} onNavigate={handleNavigate} />;
       
       case 'vendors':
       case 'social':
@@ -87,7 +116,7 @@ export default function App() {
         );
       
       default:
-        return <AdminOverview />;
+        return <AdminOverview onNavigate={handleNavigate} />;
     }
   };
 

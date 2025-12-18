@@ -5,13 +5,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Layout } from './Layout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
+import { ViewType } from '../App';
 
 const transactions = [
   { id: '#6252', date: 'Aug 20,2025', user: 'Manila Mayo', vendor: 'Game', amount: 'R1900.00', status: 'Completed' },
-  { id: '#6252', date: 'Aug 20,2025', user: 'MoMo Gift', vendor: 'Seaview Lodge', amount: 'R15 000.00', status: 'Pending' },
-  { id: '#6202', date: 'Aug 20,2025', user: 'MoMo Gift', vendor: 'Seaview Lodge', amount: 'R15 000.00', status: 'Failed' },
+  { id: '#6253', date: 'Aug 20,2025', user: 'MoMo Gift', vendor: 'Seaview Lodge', amount: 'R15 000.00', status: 'Pending' },
+  { id: '#6254', date: 'Aug 20,2025', user: 'MoMo Gift', vendor: 'Seaview Lodge', amount: 'R15 000.00', status: 'Failed' },
   { id: '#6202', date: 'Aug 20,2025', user: 'MoMo Gift', vendor: 'Seaview Lodge', amount: 'R15 000.00', status: 'Completed' },
   { id: '#6202', date: 'Aug 20,2025', user: 'MoMo Gift', vendor: 'Seaview Lodge', amount: 'R15 000.00', status: 'Completed' },
   { id: '#6202', date: 'Aug 20,2025', user: 'MoMo Gift', vendor: 'Seaview Lodge', amount: 'R15 000.00', status: 'Completed' },
@@ -38,7 +39,12 @@ const getStatusColor = (status: string) => {
   }
 };
 
-export function TransactionManagement() {
+interface TransactionManagementProps {
+  onNavigate?: (view: ViewType) => void;
+  selectedTransactionId?: string;
+}
+
+export function TransactionManagement({ onNavigate, selectedTransactionId }: TransactionManagementProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [viewDetailsOpen, setViewDetailsOpen] = useState(false);
   const [editTransactionOpen, setEditTransactionOpen] = useState(false);
@@ -48,6 +54,17 @@ export function TransactionManagement() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [transactionsList, setTransactionsList] = useState(transactions);
+
+  // Auto-open transaction details if selectedTransactionId is provided
+  useEffect(() => {
+    if (selectedTransactionId) {
+      const index = transactionsList.findIndex(t => t.id === selectedTransactionId);
+      if (index !== -1) {
+        setSelectedTransactionIndex(index);
+        setViewDetailsOpen(true);
+      }
+    }
+  }, [selectedTransactionId, transactionsList]);
 
   // Calculate counts based on actual data
   const totalTransactions = transactionsList.length;
@@ -82,7 +99,7 @@ export function TransactionManagement() {
 
   return (
     <>
-      <Layout>
+      <Layout onNavigate={onNavigate}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
