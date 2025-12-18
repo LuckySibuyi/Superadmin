@@ -6,6 +6,7 @@ import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Layout } from './Layout';
 import { useState } from 'react';
+import jsPDF from 'jspdf';
 
 const transactions = [
   { id: '#6252', date: 'Aug 20,2025', user: 'Manila Mayo', vendor: 'Game', amount: 'R1900.00', status: 'Completed' },
@@ -41,6 +42,43 @@ export function TransactionManagement() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [viewDetailsOpen, setViewDetailsOpen] = useState(false);
   const [editTransactionOpen, setEditTransactionOpen] = useState(false);
+  const [selectedTransactionIndex, setSelectedTransactionIndex] = useState<number | null>(null);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'Completed' | 'Pending' | 'Failed' | 'Refund'>('all');
+  const [sortBy, setSortBy] = useState<'id' | 'date' | 'user' | 'vendor' | 'amount' | 'status'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [transactionsList, setTransactionsList] = useState(transactions);
+
+  // Calculate counts based on actual data
+  const totalTransactions = transactionsList.length;
+  const completedTransactions = transactionsList.filter(t => t.status === 'Completed').length;
+  const pendingTransactions = transactionsList.filter(t => t.status === 'Pending').length;
+  const failedTransactions = transactionsList.filter(t => t.status === 'Failed').length;
+  const refundTransactions = transactionsList.filter(t => t.status === 'Refund').length;
+
+  // Filter transactions based on active filter
+  const filteredTransactions = transactionsList.filter(transaction => {
+    if (activeFilter === 'all') return true;
+    return transaction.status === activeFilter;
+  });
+
+  // Sort transactions based on sortBy and sortOrder
+  const sortedTransactions = filteredTransactions.sort((a, b) => {
+    if (sortBy === 'id') {
+      return sortOrder === 'asc' ? a.id.localeCompare(b.id) : b.id.localeCompare(a.id);
+    } else if (sortBy === 'date') {
+      return sortOrder === 'asc' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+    } else if (sortBy === 'user') {
+      return sortOrder === 'asc' ? a.user.localeCompare(b.user) : b.user.localeCompare(a.user);
+    } else if (sortBy === 'vendor') {
+      return sortOrder === 'asc' ? a.vendor.localeCompare(b.vendor) : b.vendor.localeCompare(a.vendor);
+    } else if (sortBy === 'amount') {
+      return sortOrder === 'asc' ? parseFloat(a.amount.replace(/[^0-9.-]+/g, '')) - parseFloat(b.amount.replace(/[^0-9.-]+/g, '')) : parseFloat(b.amount.replace(/[^0-9.-]+/g, '')) - parseFloat(a.amount.replace(/[^0-9.-]+/g, ''));
+    } else if (sortBy === 'status') {
+      return sortOrder === 'asc' ? a.status.localeCompare(b.status) : b.status.localeCompare(a.status);
+    }
+    return 0;
+  });
 
   return (
     <>
@@ -55,15 +93,124 @@ export function TransactionManagement() {
                 </Button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
+            <div className="flex gap-2 relative">
+              <Button 
+                variant="outline" 
+                className="gap-2"
+                onClick={() => setSortMenuOpen(!sortMenuOpen)}
+              >
                 <Filter className="w-4 h-4" />
                 Sort by
               </Button>
+              {sortMenuOpen && (
+                <div className="absolute right-28 top-10 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                  <div className="py-1" role="menu">
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSortBy('id');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        setSortMenuOpen(false);
+                      }}
+                    >
+                      ID {sortBy === 'id' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSortBy('date');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        setSortMenuOpen(false);
+                      }}
+                    >
+                      Date {sortBy === 'date' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSortBy('user');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        setSortMenuOpen(false);
+                      }}
+                    >
+                      User {sortBy === 'user' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSortBy('vendor');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        setSortMenuOpen(false);
+                      }}
+                    >
+                      Vendor {sortBy === 'vendor' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSortBy('amount');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        setSortMenuOpen(false);
+                      }}
+                    >
+                      Amount {sortBy === 'amount' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                    </button>
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => {
+                        setSortBy('status');
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        setSortMenuOpen(false);
+                      }}
+                    >
+                      Status {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                    </button>
+                  </div>
+                </div>
+              )}
               <Button className="bg-indigo-600 hover:bg-indigo-700">
                 Show Transactions
               </Button>
             </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-5 gap-4 mb-6">
+            <button 
+              onClick={() => setActiveFilter('all')}
+              className={`bg-white rounded-lg p-4 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'all' ? 'ring-2 ring-indigo-600' : ''}`}
+            >
+              <div className="text-sm text-gray-500 mb-1">Total Transactions</div>
+              <div className="text-2xl">{totalTransactions}</div>
+            </button>
+            <button 
+              onClick={() => setActiveFilter('Completed')}
+              className={`bg-white rounded-lg p-4 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'Completed' ? 'ring-2 ring-green-600' : ''}`}
+            >
+              <div className="text-sm text-gray-500 mb-1">Completed</div>
+              <div className="text-2xl text-green-600">{completedTransactions}</div>
+            </button>
+            <button 
+              onClick={() => setActiveFilter('Pending')}
+              className={`bg-white rounded-lg p-4 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'Pending' ? 'ring-2 ring-yellow-600' : ''}`}
+            >
+              <div className="text-sm text-gray-500 mb-1">Pending</div>
+              <div className="text-2xl text-yellow-600">{pendingTransactions}</div>
+            </button>
+            <button 
+              onClick={() => setActiveFilter('Failed')}
+              className={`bg-white rounded-lg p-4 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'Failed' ? 'ring-2 ring-red-600' : ''}`}
+            >
+              <div className="text-sm text-gray-500 mb-1">Failed</div>
+              <div className="text-2xl text-red-600">{failedTransactions}</div>
+            </button>
+            <button 
+              onClick={() => setActiveFilter('Refund')}
+              className={`bg-white rounded-lg p-4 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'Refund' ? 'ring-2 ring-indigo-600' : ''}`}
+            >
+              <div className="text-sm text-gray-500 mb-1">Refund</div>
+              <div className="text-2xl text-indigo-600">{refundTransactions}</div>
+            </button>
           </div>
 
           {/* Table */}
@@ -81,7 +228,7 @@ export function TransactionManagement() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((transaction, index) => (
+                {sortedTransactions.map((transaction, index) => (
                   <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm">{transaction.id}</td>
                     <td className="px-6 py-4 text-sm">{transaction.date}</td>
@@ -95,27 +242,36 @@ export function TransactionManagement() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8"
-                          onClick={() => setViewDetailsOpen(true)}
+                          onClick={() => {
+                            setViewDetailsOpen(true);
+                            setSelectedTransactionIndex(index);
+                          }}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8"
-                          onClick={() => setEditTransactionOpen(true)}
+                          onClick={() => {
+                            setEditTransactionOpen(true);
+                            setSelectedTransactionIndex(index);
+                          }}
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8"
-                          onClick={() => setDeleteDialogOpen(true)}
+                          onClick={() => {
+                            setDeleteDialogOpen(true);
+                            setSelectedTransactionIndex(index);
+                          }}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -134,9 +290,9 @@ export function TransactionManagement() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-4">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8"
                 onClick={() => setViewDetailsOpen(false)}
               >
@@ -148,7 +304,7 @@ export function TransactionManagement() {
               View transaction details
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="bg-indigo-50 rounded-lg p-4 mb-6 flex items-center justify-between">
             <div>
               <div className="text-sm">#5252</div>
@@ -209,8 +365,8 @@ export function TransactionManagement() {
             <Button variant="outline" onClick={() => setViewDetailsOpen(false)}>
               Close
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={() => {
                 setViewDetailsOpen(false);
                 setDeleteDialogOpen(true);
@@ -219,7 +375,24 @@ export function TransactionManagement() {
             >
               Delete
             </Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700"
+              onClick={() => {
+                const doc = new jsPDF();
+                doc.text("Transaction Details", 10, 10);
+                doc.text("Order ID: #5252", 10, 20);
+                doc.text("Date: Aug 20,2025", 10, 30);
+                doc.text("User: Manila Mayo", 10, 40);
+                doc.text("Vendor: Game", 10, 50);
+                doc.text("Amount: R7500.00", 10, 60);
+                doc.text("Status: Completed", 10, 70);
+                doc.text("Payment Methods: E-wallet", 10, 80);
+                doc.text("Reference: 9754625625215", 10, 90);
+                doc.text("Items Purchased: Seaview lodge -2 nights, Tastelofuls catering, Horse riding", 10, 100);
+                doc.text("Notes/Description: Client paid via ewallet", 10, 110);
+                doc.save("transaction_details.pdf");
+              }}
+            >
               Export PDF
             </Button>
           </DialogFooter>
@@ -231,9 +404,9 @@ export function TransactionManagement() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8"
                 onClick={() => setEditTransactionOpen(false)}
               >
@@ -306,7 +479,7 @@ export function TransactionManagement() {
             <Button variant="outline" onClick={() => setEditTransactionOpen(false)}>
               Close
             </Button>
-            <Button 
+            <Button
               className="bg-indigo-600 hover:bg-indigo-700"
               onClick={() => setEditTransactionOpen(false)}
             >
@@ -339,9 +512,20 @@ export function TransactionManagement() {
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={() => setDeleteDialogOpen(false)}
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (selectedTransactionIndex !== null) {
+                  const transactionToDelete = sortedTransactions[selectedTransactionIndex];
+                  setTransactionsList(transactionsList.filter(t => 
+                    !(t.id === transactionToDelete.id && 
+                      t.date === transactionToDelete.date && 
+                      t.user === transactionToDelete.user && 
+                      t.vendor === transactionToDelete.vendor)
+                  ));
+                }
+                setDeleteDialogOpen(false);
+              }}
               className="bg-red-500 hover:bg-red-600"
             >
               Confirm

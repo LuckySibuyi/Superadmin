@@ -72,29 +72,67 @@ export const users = [
     status: 'Active', 
     lastLogin: '01/08/2025', 
     ratings: 'R1000', 
-    comment: 'Great user' 
+    comment: 'Text' 
   },
   { 
     id: '2',
     name: 'John Smith', 
-    email: 'JohnSmith@gamil.com', 
+    email: 'JoshuaBlla@gamil.com', 
     role: 'User', 
     status: 'Active', 
     lastLogin: '11/08/2025', 
     ratings: 'R500', 
-    comment: 'Regular user' 
+    comment: 'Text' 
   },
   { 
     id: '3',
-    name: 'Sarah Williams', 
-    email: 'SarahW@gamil.com', 
+    name: 'John Smith', 
+    email: 'JoshuaBlla@gamil.com', 
     role: 'User', 
     status: 'Suspended', 
     lastLogin: '11/08/2025', 
     ratings: 'R1000', 
-    comment: 'Needs review' 
+    comment: 'Text' 
+  },
+  { 
+    id: '4',
+    name: 'Seaview lodge', 
+    email: 'JoshuaBlla@gamil.com', 
+    role: 'Vendor', 
+    status: 'Active', 
+    lastLogin: '11/08/2025', 
+    ratings: 'R1000', 
+    comment: 'Text' 
+  },
+  { 
+    id: '5',
+    name: 'Tastobites', 
+    email: 'JoshuaBlla@gamil.com', 
+    role: 'Vendor', 
+    status: 'Active', 
+    lastLogin: '11/08/2025', 
+    ratings: 'R1000', 
+    comment: 'Text' 
+  },
+  { 
+    id: '6',
+    name: 'John Smith', 
+    email: 'JoshuaBlla@gamil.com', 
+    role: 'Corporate', 
+    status: 'Active', 
+    lastLogin: '11/08/2025', 
+    ratings: 'R1000', 
+    comment: 'Text' 
   },
 ];
+
+// User Stats
+export const userStats = {
+  totalUsers: 1200,
+  activeUsers: 965,
+  suspendedUsers: 20,
+  bannedUsers: 0,
+};
 
 // Voucher Data
 export const vouchers = [

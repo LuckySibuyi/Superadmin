@@ -47,7 +47,7 @@ export default function App() {
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
-        return <AdminOverview />;
+        return <AdminOverview onNavigate={handleNavigate} />;
       
       case 'campaigns':
         return <CampaignsManagement onViewCampaign={handleViewCampaign} />;
@@ -93,7 +93,7 @@ export default function App() {
 
   return (
     <AppProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen overflow-hidden">
         <Sidebar activeView={activeView} onNavigate={handleNavigate} />
         {renderContent()}
       </div>

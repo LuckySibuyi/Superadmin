@@ -4,12 +4,104 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Layout } from './Layout';
 import { campaigns, campaignStats } from '../data/mockData';
 import { getStatusColor, formatCurrency } from '../utils/formatters';
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 interface CampaignsManagementProps {
   onViewCampaign?: (campaignId: string) => void;
 }
 
+type FilterType = 'all' | 'active' | 'best-campaigns' | 'best-vendors';
+type SortType = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'raised-desc' | 'raised-asc' | 'vendors-desc' | 'vendors-asc';
+
 export function CampaignsManagement({ onViewCampaign }: CampaignsManagementProps) {
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [sortBy, setSortBy] = useState<SortType>('date-desc');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setShowSortMenu(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter campaigns based on active filter
+  const getFilteredCampaigns = () => {
+    switch (activeFilter) {
+      case 'active':
+        return campaigns.filter(c => c.status === 'Active');
+      case 'best-campaigns':
+        // Best campaigns are those that have raised the most or met their goal
+        return campaigns
+          .filter(c => c.raised >= c.goal * 0.8)
+          .sort((a, b) => b.raised - a.raised)
+          .slice(0, 25);
+      case 'best-vendors':
+        // Best vendors are those with the most vendors involved
+        return campaigns
+          .sort((a, b) => b.vendorsInvolved - a.vendorsInvolved)
+          .slice(0, 12);
+      default:
+        return campaigns;
+    }
+  };
+
+  // Sort campaigns based on sort option
+  const getSortedCampaigns = (campaignsToSort: typeof campaigns) => {
+    const sorted = [...campaignsToSort];
+    
+    switch (sortBy) {
+      case 'date-desc':
+        return sorted.reverse();
+      case 'date-asc':
+        return sorted;
+      case 'name-asc':
+        return sorted.sort((a, b) => a.name.localeCompare(b.name));
+      case 'name-desc':
+        return sorted.sort((a, b) => b.name.localeCompare(a.name));
+      case 'raised-desc':
+        return sorted.sort((a, b) => b.raised - a.raised);
+      case 'raised-asc':
+        return sorted.sort((a, b) => a.raised - b.raised);
+      case 'vendors-desc':
+        return sorted.sort((a, b) => b.vendorsInvolved - a.vendorsInvolved);
+      case 'vendors-asc':
+        return sorted.sort((a, b) => a.vendorsInvolved - b.vendorsInvolved);
+      default:
+        return sorted;
+    }
+  };
+
+  const filteredCampaigns = getFilteredCampaigns();
+  const sortedCampaigns = getSortedCampaigns(filteredCampaigns);
+
+  const sortOptions = [
+    { value: 'date-desc' as SortType, label: 'Date (Newest First)' },
+    { value: 'date-asc' as SortType, label: 'Date (Oldest First)' },
+    { value: 'name-asc' as SortType, label: 'Name (A-Z)' },
+    { value: 'name-desc' as SortType, label: 'Name (Z-A)' },
+    { value: 'raised-desc' as SortType, label: 'Amount Raised (High to Low)' },
+    { value: 'raised-asc' as SortType, label: 'Amount Raised (Low to High)' },
+    { value: 'vendors-desc' as SortType, label: 'Vendors Involved (Most First)' },
+    { value: 'vendors-asc' as SortType, label: 'Vendors Involved (Least First)' },
+  ];
+
+  const handleSortSelect = (value: SortType) => {
+    setSortBy(value);
+    setShowSortMenu(false);
+  };
+
+  const getSortLabel = () => {
+    return sortOptions.find(opt => opt.value === sortBy)?.label || 'Sort by';
+  };
+
   return (
     <Layout>
       <div className="p-6">
@@ -22,34 +114,110 @@ export function CampaignsManagement({ onViewCampaign }: CampaignsManagementProps
           </Button>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Now clickable filters */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg p-6">
+          <button
+            onClick={() => setActiveFilter('all')}
+            className={`bg-white rounded-lg p-6 text-left transition-all hover:shadow-md ${
+              activeFilter === 'all' ? 'ring-2 ring-indigo-500 shadow-md' : ''
+            }`}
+          >
             <div className="text-sm text-gray-600 mb-2">Total Campaigns</div>
             <div className="text-3xl">{campaignStats.totalCampaigns}</div>
-          </div>
-          <div className="bg-white rounded-lg p-6">
+            {activeFilter === 'all' && (
+              <div className="text-xs text-indigo-600 mt-2">● Active Filter</div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveFilter('active')}
+            className={`bg-white rounded-lg p-6 text-left transition-all hover:shadow-md ${
+              activeFilter === 'active' ? 'ring-2 ring-indigo-500 shadow-md' : ''
+            }`}
+          >
             <div className="text-sm text-gray-600 mb-2">Active Campaigns</div>
             <div className="text-3xl">{campaignStats.activeCampaigns}</div>
-          </div>
-          <div className="bg-white rounded-lg p-6">
+            {activeFilter === 'active' && (
+              <div className="text-xs text-indigo-600 mt-2">● Active Filter</div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveFilter('best-campaigns')}
+            className={`bg-white rounded-lg p-6 text-left transition-all hover:shadow-md ${
+              activeFilter === 'best-campaigns' ? 'ring-2 ring-indigo-500 shadow-md' : ''
+            }`}
+          >
             <div className="text-sm text-gray-600 mb-2">Best Campaigns</div>
             <div className="text-3xl">{campaignStats.bestCampaigns}</div>
-          </div>
-          <div className="bg-white rounded-lg p-6">
+            {activeFilter === 'best-campaigns' && (
+              <div className="text-xs text-indigo-600 mt-2">● Active Filter</div>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveFilter('best-vendors')}
+            className={`bg-white rounded-lg p-6 text-left transition-all hover:shadow-md ${
+              activeFilter === 'best-vendors' ? 'ring-2 ring-indigo-500 shadow-md' : ''
+            }`}
+          >
             <div className="text-sm text-gray-600 mb-2">Best Vendors</div>
             <div className="text-3xl">{campaignStats.bestVendors}</div>
-          </div>
+            {activeFilter === 'best-vendors' && (
+              <div className="text-xs text-indigo-600 mt-2">● Active Filter</div>
+            )}
+          </button>
         </div>
 
         {/* Sort button */}
-        <div className="flex justify-end mb-4">
-          <Button variant="outline" className="gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-            </svg>
-            Sort by
-          </Button>
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-sm text-gray-600">
+            Showing {filteredCampaigns.length} campaign{filteredCampaigns.length !== 1 ? 's' : ''}
+            {activeFilter !== 'all' && (
+              <button
+                onClick={() => setActiveFilter('all')}
+                className="ml-2 text-indigo-600 hover:text-indigo-700 underline"
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
+          <div className="relative" ref={sortMenuRef}>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => setShowSortMenu(!showSortMenu)}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+              </svg>
+              {getSortLabel()}
+              <ChevronDown className={`w-4 h-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+            </Button>
+            {showSortMenu && (
+              <div
+                className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10"
+              >
+                <div className="py-1">
+                  {sortOptions.map(option => (
+                    <button
+                      key={option.value}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                        sortBy === option.value ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700'
+                      }`}
+                      onClick={() => handleSortSelect(option.value)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{option.label}</span>
+                        {sortBy === option.value && (
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Table */}
@@ -66,7 +234,7 @@ export function CampaignsManagement({ onViewCampaign }: CampaignsManagementProps
               </tr>
             </thead>
             <tbody>
-              {campaigns.map((campaign) => (
+              {sortedCampaigns.map((campaign) => (
                 <tr 
                   key={campaign.id} 
                   className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
@@ -95,6 +263,12 @@ export function CampaignsManagement({ onViewCampaign }: CampaignsManagementProps
               ))}
             </tbody>
           </table>
+          
+          {filteredCampaigns.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              No campaigns found for this filter
+            </div>
+          )}
         </div>
       </div>
     </Layout>

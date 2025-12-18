@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Bell, User as UserIcon, Plus, ArrowLeft } from 'lucide-react';
+import { Bell, User as UserIcon, Plus, ArrowLeft, Search, ShoppingCart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -29,9 +29,9 @@ export function Layout({
   const { notifications } = useApp();
 
   return (
-    <div className="flex-1 bg-gray-50 flex flex-col">
+    <div className="flex-1 bg-[#F5F5FA] flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-border px-6 py-4 flex items-center justify-between flex-shrink-0">
+      <div className="bg-white border-b border-[#E5E5E5] px-6 py-3 flex items-center justify-between flex-shrink-0 h-[64px]">
         <div className="flex items-center gap-4 flex-1">
           {showBackButton && onBack && (
             <Button variant="ghost" size="icon" onClick={onBack}>
@@ -45,21 +45,19 @@ export function Layout({
             <div className="relative flex-1 max-w-md ml-4">
               <Input
                 placeholder="Search"
-                className="pl-4 pr-10 bg-gray-50"
+                className="pl-4 pr-10 bg-[#F5F5FA] border-0 rounded-lg h-10 text-sm shadow-[inset_-2px_-2px_4px_0px_rgba(255,255,255,0.5),inset_2px_2px_4px_0px_rgba(170,170,204,0.25)]"
               />
               <button className="absolute right-3 top-1/2 -translate-y-1/2">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+                <Search className="w-4 h-4 text-[#7878AB]" />
               </button>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {showCreateButton && (
             <Button 
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-[#8363F2] hover:bg-[#6B51D4] text-white px-4 py-2 h-10 rounded-lg"
               onClick={onCreateClick}
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -67,8 +65,8 @@ export function Layout({
             </Button>
           )}
           
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5" />
+          <Button variant="ghost" size="icon" className="relative w-10 h-10 hover:bg-gray-100">
+            <Bell className="w-5 h-5 text-gray-700" />
             {notifications > 0 && (
               <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 hover:bg-red-500 text-xs">
                 {notifications}
@@ -76,8 +74,12 @@ export function Layout({
             )}
           </Button>
           
-          <Button variant="ghost" size="icon">
-            <UserIcon className="w-5 h-5" />
+          <Button variant="ghost" size="icon" className="w-10 h-10 hover:bg-gray-100">
+            <ShoppingCart className="w-5 h-5 text-gray-700" />
+          </Button>
+          
+          <Button variant="ghost" size="icon" className="w-10 h-10 hover:bg-gray-100">
+            <UserIcon className="w-5 h-5 text-gray-700" />
           </Button>
         </div>
       </div>

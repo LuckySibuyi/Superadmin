@@ -1,4 +1,4 @@
-import { ArrowLeft, Eye, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Eye, Edit2, Trash2, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -6,7 +6,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Layout } from './Layout';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import QRCode from 'react-qr-code';
+import jsPDF from 'jspdf';
 
 const vouchers = [
   { id: 1, name: 'Room/food/YVehiv', vendor: 'Vendor C', discount: '15% OFF', validity: '01/08/2025', status: 'Expired', redemption: '50/100' },
@@ -37,107 +39,301 @@ const getStatusColor = (status: string) => {
 export function VoucherManagement() {
   const [viewVoucherOpen, setViewVoucherOpen] = useState(false);
   const [editVoucherOpen, setEditVoucherOpen] = useState(false);
+  const [deleteVoucherOpen, setDeleteVoucherOpen] = useState(false);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
   const [voucherName, setVoucherName] = useState('Room_aasfhcdkfhaP');
   const [selectedVendor, setSelectedVendor] = useState('Seaview Lodge hotel');
   const [selectedDiscount, setSelectedDiscount] = useState('15% OFF');
   const [validity, setValidity] = useState('01 Sept 2025-06 Sept 2025');
   const [status, setStatus] = useState('Active');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'Active' | 'Redeemed' | 'Cancelled'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'vendor' | 'validity' | 'status'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [vouchersList, setVouchersList] = useState(vouchers);
+
+  const voucherRef = useRef<HTMLDivElement>(null);
+
+  // Calculate counts based on actual data
+  const totalVouchers = vouchersList.length;
+  const activeVouchers = vouchersList.filter(v => v.status === 'Active').length;
+  const redeemedVouchers = vouchersList.filter(v => v.status === 'Redeemed').length;
+  const cancelledVouchers = vouchersList.filter(v => v.status === 'Cancelled').length;
+
+  const exportAsPdf = () => {
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Set font
+    pdf.setFont('helvetica');
+    
+    // Add title
+    pdf.setFontSize(16);
+    pdf.text('Voucher Details', 105, 20, { align: 'center' });
+    
+    // Left column - Details
+    pdf.setFontSize(12);
+    let yPos = 40;
+    
+    // Voucher name
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Voucher name', 30, yPos);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('Room_aasfhcdchfhbP', 30, yPos + 6);
+    
+    yPos += 20;
+    
+    // Vendor
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Vendor', 30, yPos);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('Seaview Lodge hotel', 30, yPos + 6);
+    
+    yPos += 20;
+    
+    // Discount
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Discount/value', 30, yPos);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('15% OFF', 30, yPos + 6);
+    
+    yPos += 20;
+    
+    // Validity
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Validity', 30, yPos);
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('01 Sept 2025-08 Sept 2025', 30, yPos + 6);
+    
+    // QR Code section - get the SVG and convert to data URL
+    if (voucherRef.current) {
+      const qrSvg = voucherRef.current.querySelector('svg');
+      if (qrSvg) {
+        const svgData = new XMLSerializer().serializeToString(qrSvg);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        canvas.width = 100;
+        canvas.height = 100;
+        
+        img.onload = () => {
+          if (ctx) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 100, 100);
+            ctx.drawImage(img, 0, 0, 100, 100);
+            const qrDataUrl = canvas.toDataURL('image/png');
+            
+            // Add QR code to PDF
+            pdf.setDrawColor(139, 92, 246); // Indigo color
+            pdf.setLineWidth(1);
+            pdf.rect(130, 40, 40, 40); // Border
+            pdf.addImage(qrDataUrl, 'PNG', 132, 42, 36, 36);
+            
+            // Redemption text
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100);
+            pdf.text('Redemption', 150, 88, { align: 'center' });
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('1/5', 150, 94, { align: 'center' });
+            
+            // Save the PDF
+            pdf.save('voucher.pdf');
+          }
+        };
+        
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+      }
+    }
+  };
 
   return (
     <>
       <Layout>
-        <div className="p-6">
+        <div className="p-6 bg-[#F5F5FA] min-h-full">
           <h1 className="mb-6">Voucher Management</h1>
 
           {/* Tabs */}
           <div className="mb-6">
-            <Button variant="ghost" className="text-indigo-600 border-b-2 border-indigo-600 rounded-none px-4 py-2">
+            <Button variant="ghost" className="text-indigo-600 border-b-2 border-indigo-600 rounded-none px-4 py-2" onClick={() => setActiveFilter('all')}>
               All
+            </Button>
+            <Button variant="ghost" className="text-indigo-600 border-b-2 border-indigo-600 rounded-none px-4 py-2" onClick={() => setActiveFilter('Active')}>
+              Active
+            </Button>
+            <Button variant="ghost" className="text-indigo-600 border-b-2 border-indigo-600 rounded-none px-4 py-2" onClick={() => setActiveFilter('Redeemed')}>
+              Redeemed
+            </Button>
+            <Button variant="ghost" className="text-indigo-600 border-b-2 border-indigo-600 rounded-none px-4 py-2" onClick={() => setActiveFilter('Cancelled')}>
+              Cancelled
             </Button>
           </div>
 
           {/* Stats Cards */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg p-6">
+            <button 
+              onClick={() => setActiveFilter('all')}
+              className={`bg-white rounded-lg p-6 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'all' ? 'ring-2 ring-indigo-600' : ''}`}
+            >
               <div className="text-sm text-gray-600 mb-2">Total Vouchers</div>
-              <div className="text-3xl">120</div>
-            </div>
-            <div className="bg-white rounded-lg p-6">
+              <div className="text-3xl">{totalVouchers}</div>
+            </button>
+            <button 
+              onClick={() => setActiveFilter('Active')}
+              className={`bg-white rounded-lg p-6 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'Active' ? 'ring-2 ring-indigo-600' : ''}`}
+            >
               <div className="text-sm text-gray-600 mb-2">Active Vouchers</div>
-              <div className="text-3xl">80</div>
-            </div>
-            <div className="bg-white rounded-lg p-6">
+              <div className="text-3xl">{activeVouchers}</div>
+            </button>
+            <button 
+              onClick={() => setActiveFilter('Redeemed')}
+              className={`bg-white rounded-lg p-6 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'Redeemed' ? 'ring-2 ring-indigo-600' : ''}`}
+            >
               <div className="text-sm text-gray-600 mb-2">Redeemed</div>
-              <div className="text-3xl">25</div>
-            </div>
-            <div className="bg-white rounded-lg p-6">
+              <div className="text-3xl">{redeemedVouchers}</div>
+            </button>
+            <button 
+              onClick={() => setActiveFilter('Cancelled')}
+              className={`bg-white rounded-lg p-6 shadow-sm text-left transition-all cursor-pointer hover:shadow-md ${activeFilter === 'Cancelled' ? 'ring-2 ring-indigo-600' : ''}`}
+            >
               <div className="text-sm text-gray-600 mb-2">Cancelled</div>
-              <div className="text-3xl text-red-600">0</div>
-            </div>
+              <div className="text-3xl text-red-600">{cancelledVouchers}</div>
+            </button>
           </div>
 
           {/* Sort button */}
-          <div className="flex justify-end mb-4">
-            <Button variant="outline" className="gap-2">
+          <div className="flex justify-end mb-4 relative">
+            <Button variant="outline" className="gap-2" onClick={() => setSortMenuOpen(!sortMenuOpen)}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
               </svg>
               Sort by
             </Button>
+            {sortMenuOpen && (
+              <div className="absolute right-0 top-10 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
+                <div className="py-1" role="menu">
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSortBy('name');
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                      setSortMenuOpen(false);
+                    }}
+                  >
+                    Name {sortBy === 'name' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSortBy('vendor');
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                      setSortMenuOpen(false);
+                    }}
+                  >
+                    Vendor {sortBy === 'vendor' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSortBy('validity');
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                      setSortMenuOpen(false);
+                    }}
+                  >
+                    Validity {sortBy === 'validity' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setSortBy('status');
+                      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                      setSortMenuOpen(false);
+                    }}
+                  >
+                    Status {sortBy === 'status' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Table */}
-          <div className="bg-white rounded-lg overflow-hidden">
-            <table className="w-full">
+          <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+            <table className="w-full table-fixed">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm">Voucher name</th>
-                  <th className="px-6 py-3 text-left text-sm">Vendor</th>
-                  <th className="px-6 py-3 text-left text-sm">Discount</th>
-                  <th className="px-6 py-3 text-left text-sm">Validity</th>
-                  <th className="px-6 py-3 text-left text-sm">Status</th>
-                  <th className="px-6 py-3 text-left text-sm">Redemption</th>
-                  <th className="px-6 py-3 text-left text-sm">Action</th>
+                  <th className="px-4 py-3 text-left text-sm w-[18%]">Voucher name</th>
+                  <th className="px-4 py-3 text-left text-sm w-[16%]">Vendor</th>
+                  <th className="px-4 py-3 text-left text-sm w-[10%]">Discount</th>
+                  <th className="px-4 py-3 text-left text-sm w-[14%]">Validity</th>
+                  <th className="px-4 py-3 text-left text-sm w-[12%]">Status</th>
+                  <th className="px-4 py-3 text-left text-sm w-[12%]">Redemption</th>
+                  <th className="px-4 py-3 text-left text-sm w-[18%]">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {vouchers.map((voucher) => (
-                  <tr key={voucher.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm">{voucher.name}</td>
-                    <td className="px-6 py-4 text-sm">{voucher.vendor}</td>
-                    <td className="px-6 py-4 text-sm">{voucher.discount}</td>
-                    <td className="px-6 py-4 text-sm">{voucher.validity}</td>
-                    <td className="px-6 py-4">
-                      <Badge className={getStatusColor(voucher.status)}>
-                        {voucher.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm">{voucher.redemption}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => setViewVoucherOpen(true)}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={() => setEditVoucherOpen(true)}
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {vouchersList
+                  .filter(voucher => activeFilter === 'all' || voucher.status === activeFilter)
+                  .sort((a, b) => {
+                    if (sortBy === 'name') {
+                      return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+                    } else if (sortBy === 'vendor') {
+                      return sortOrder === 'asc' ? a.vendor.localeCompare(b.vendor) : b.vendor.localeCompare(a.vendor);
+                    } else if (sortBy === 'validity') {
+                      return sortOrder === 'asc' ? a.validity.localeCompare(b.validity) : b.validity.localeCompare(a.validity);
+                    } else if (sortBy === 'status') {
+                      return sortOrder === 'asc' ? a.status.localeCompare(b.status) : b.status.localeCompare(a.status);
+                    }
+                    return 0;
+                  })
+                  .map((voucher) => (
+                    <tr key={voucher.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm truncate">{voucher.name}</td>
+                      <td className="px-4 py-3 text-sm truncate">{voucher.vendor}</td>
+                      <td className="px-4 py-3 text-sm">{voucher.discount}</td>
+                      <td className="px-4 py-3 text-sm">{voucher.validity}</td>
+                      <td className="px-4 py-3">
+                        <Badge className={getStatusColor(voucher.status)}>
+                          {voucher.status}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-center">{voucher.redemption}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => setViewVoucherOpen(true)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => setEditVoucherOpen(true)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setDeleteVoucherOpen(true);
+                              setSelectedVoucherId(voucher.id);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -153,54 +349,41 @@ export function VoucherManagement() {
               View voucher details
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-6">
-              {/* Left side - Details */}
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm mb-1">Voucher name</div>
-                  <div className="text-sm">Room_aasfhcdchfhbP</div>
+          <div className="space-y-6 py-4 bg-white">
+            <div ref={voucherRef} style={{ padding: '20px', backgroundColor: '#ffffff' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                {/* Left side - Details */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Voucher name</div>
+                    <div style={{ fontSize: '14px', color: '#000000' }}>Room_aasfhcdchfhbP</div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Vendor</div>
+                    <div style={{ fontSize: '14px', color: '#000000' }}>Seaview Lodge hotel</div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Discount/value</div>
+                    <div style={{ fontSize: '14px', color: '#000000' }}>15% OFF</div>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Validity</div>
+                    <div style={{ fontSize: '14px', color: '#000000' }}>01 Sept 2025-08 Sept 2025</div>
+                  </div>
                 </div>
 
-                <div>
-                  <div className="text-sm mb-1">Vendor</div>
-                  <div className="text-sm">Seaview Lodge hotel</div>
-                </div>
-
-                <div>
-                  <div className="text-sm mb-1">Discount/value</div>
-                  <div className="text-sm">15% OFF</div>
-                </div>
-
-                <div>
-                  <div className="text-sm mb-1">Validity</div>
-                  <div className="text-sm">01 Sept 2025-08 Sept 2025</div>
-                </div>
-              </div>
-
-              {/* Right side - QR Code */}
-              <div className="flex flex-col items-center justify-center">
-                <div className="w-32 h-32 border-4 border-indigo-600 rounded-lg p-2 mb-2">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    {/* QR Code pattern */}
-                    <rect x="10" y="10" width="30" height="30" fill="#4f46e5" />
-                    <rect x="60" y="10" width="30" height="30" fill="#4f46e5" />
-                    <rect x="10" y="60" width="30" height="30" fill="#4f46e5" />
-                    <rect x="20" y="20" width="10" height="10" fill="white" />
-                    <rect x="70" y="20" width="10" height="10" fill="white" />
-                    <rect x="20" y="70" width="10" height="10" fill="white" />
-                    <rect x="50" y="30" width="5" height="5" fill="#4f46e5" />
-                    <rect x="50" y="40" width="5" height="5" fill="#4f46e5" />
-                    <rect x="60" y="50" width="5" height="5" fill="#4f46e5" />
-                    <rect x="70" y="60" width="5" height="5" fill="#4f46e5" />
-                    <rect x="50" y="70" width="5" height="5" fill="#4f46e5" />
-                    <rect x="30" y="50" width="5" height="5" fill="#4f46e5" />
-                    <rect x="40" y="60" width="5" height="5" fill="#4f46e5" />
-                  </svg>
-                </div>
-                <div className="text-center">
-                  <div className="text-sm mb-1">Redemption</div>
-                  <div className="text-sm">1/5</div>
+                {/* Right side - QR Code */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '128px', height: '128px', border: '4px solid #8B5CF6', borderRadius: '8px', padding: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <QRCode value="https://example.com/voucher/12345" size={100} />
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Redemption</div>
+                    <div style={{ fontSize: '14px', color: '#000000' }}>1/5</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -209,7 +392,7 @@ export function VoucherManagement() {
             <Button variant="outline" onClick={() => setViewVoucherOpen(false)}>
               Cancel
             </Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">
+            <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={exportAsPdf}>
               Export as Pdf
             </Button>
           </DialogFooter>
@@ -297,6 +480,36 @@ export function VoucherManagement() {
             </Button>
             <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setEditVoucherOpen(false)}>
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Voucher Dialog */}
+      <Dialog open={deleteVoucherOpen} onOpenChange={setDeleteVoucherOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Voucher</DialogTitle>
+            <DialogDescription className="sr-only">
+              Delete voucher
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-gray-500">
+              Are you sure you want to delete this voucher? This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteVoucherOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-red-600 hover:bg-red-700" onClick={() => {
+              if (selectedVoucherId !== null) {
+                setVouchersList(vouchersList.filter(v => v.id !== selectedVoucherId));
+              }
+              setDeleteVoucherOpen(false);
+            }}>
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
