@@ -170,7 +170,7 @@ export function CampaignDashboard({ headerImage, onClose }: CampaignDashboardPro
                 <Checkbox
                   id="notify-members-pause"
                   checked={notifyMembersPause}
-                  onCheckedChange={(checked) => setNotifyMembersPause(checked as boolean)}
+                  onCheckedChange={(checked: boolean) => setNotifyMembersPause(checked)}
                 />
                 <label htmlFor="notify-members-pause" className="text-sm">
                   Notify campaign members for Pause Changes
@@ -180,7 +180,7 @@ export function CampaignDashboard({ headerImage, onClose }: CampaignDashboardPro
                 <Checkbox
                   id="notify-vendors-pause"
                   checked={notifyVendorsPause}
-                  onCheckedChange={(checked) => setNotifyVendorsPause(checked as boolean)}
+                  onCheckedChange={(checked: boolean) => setNotifyVendorsPause(checked)}
                 />
                 <label htmlFor="notify-vendors-pause" className="text-sm">
                   Notify campaign Vendors who are not notified yet Changes
@@ -220,7 +220,7 @@ export function CampaignDashboard({ headerImage, onClose }: CampaignDashboardPro
                 <Checkbox
                   id="notify-members-delete"
                   checked={notifyMembersDelete}
-                  onCheckedChange={(checked) => setNotifyMembersDelete(checked as boolean)}
+                  onCheckedChange={(checked: boolean) => setNotifyMembersDelete(checked)}
                 />
                 <label htmlFor="notify-members-delete" className="text-sm">
                   Notify campaign members for Delete changes
@@ -230,7 +230,7 @@ export function CampaignDashboard({ headerImage, onClose }: CampaignDashboardPro
                 <Checkbox
                   id="notify-vendors-delete"
                   checked={notifyVendorsDelete}
-                  onCheckedChange={(checked) => setNotifyVendorsDelete(checked as boolean)}
+                  onCheckedChange={(checked: boolean) => setNotifyVendorsDelete(checked)}
                 />
                 <label htmlFor="notify-vendors-delete" className="text-sm">
                   Notify campaign Vendors who are not notified yet Changes

@@ -230,7 +230,7 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
                         <Label className="text-xs text-gray-600 mb-1 block">Sort By</Label>
                         <Select
                           value={sortBy}
-                          onValueChange={(value) => setSortBy(value as 'name' | 'date' | 'user')}
+                          onValueChange={(value: string) => setSortBy(value as 'name' | 'date' | 'user')}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue /></SelectTrigger>
@@ -245,7 +245,7 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
                         <Label className="text-xs text-gray-600 mb-1 block">Order</Label>
                         <Select
                           value={sortOrder}
-                          onValueChange={(value) => setSortOrder(value as 'asc' | 'desc')}
+                          onValueChange={(value: string) => setSortOrder(value as 'asc' | 'desc')}
                         >
                           <SelectTrigger className="w-full">
                             <SelectValue /></SelectTrigger>

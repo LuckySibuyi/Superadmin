@@ -1,6 +1,6 @@
 import svgPaths from "./svg-ioe3wymbp5";
 import clsx from "clsx";
-import imgKcLogoWhite2Transparent2 from "figma:asset/4b4bad59041302b06eae37218f1d3bd7c64d7d1e.png";
+const imgKcLogoWhite2Transparent2 = "/src/assets/4b4bad59041302b06eae37218f1d3bd7c64d7d1e.png";
 type Wrapper2Props = {
   additionalClassNames?: string;
 };

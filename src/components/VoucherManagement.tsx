@@ -2,15 +2,20 @@ import { Eye, Edit2, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Layout } from './Layout';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ViewType } from '../App';
+import jsPDF from 'jspdf';
+import { Label } from './ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
+import { Input } from './ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
 const vouchers = [
-  { id: '#6252', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Beach Cleanup', amount: 'R1900.00', user: 'Manila Mayo', status: 'Redeemed' },
-  { id: '#6253', date: 'Aug 20,2025', corporate: 'Pick n Pay', campaign: 'Summer Drive', amount: 'R15 000.00', user: 'John Smith', status: 'Available' },
-  { id: '#6254', date: 'Aug 20,2025', corporate: 'Checkers', campaign: 'Winter Sale', amount: 'R15 000.00', user: 'Jane Doe', status: 'Expired' },
-  { id: '#6255', date: 'Aug 20,2025', corporate: 'Shoprite', campaign: 'Black Friday', amount: 'R8 000.00', user: 'Bob Johnson', status: 'Redeemed' },
-  { id: '#6256', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Holiday Special', amount: 'R12 000.00', user: 'Alice Brown', status: 'Available' },
+  { id: '#6252', name: 'Beach Cleanup', vendor: 'Woolworths', discount: 'R1900.00', validity: 'Aug 20, 2025', redemption: '1/5', status: 'Redeemed' },
+  { id: '#6253', name: 'Summer Drive', vendor: 'Pick n Pay', discount: 'R15 000.00', validity: 'Aug 20, 2025', redemption: '0/1', status: 'Active' },
+  { id: '#6254', name: 'Winter Sale', vendor: 'Checkers', discount: 'R15 000.00', validity: 'Aug 20, 2025', redemption: '0/1', status: 'Expired' },
+  { id: '#6255', name: 'Black Friday', vendor: 'Shoprite', discount: 'R8 000.00', validity: 'Aug 20, 2025', redemption: '2/5', status: 'Redeemed' },
+  { id: '#6256', name: 'Holiday Special', vendor: 'Woolworths', discount: 'R12 000.00', validity: 'Aug 20, 2025', redemption: '0/1', status: 'Active' },
 ];
 
 const getStatusColor = (status: string) => {
@@ -34,7 +39,7 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
   const [viewVoucherOpen, setViewVoucherOpen] = useState(false);
   const [editVoucherOpen, setEditVoucherOpen] = useState(false);
   const [deleteVoucherOpen, setDeleteVoucherOpen] = useState(false);
-  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(null);
   const [voucherName, setVoucherName] = useState('Room_aasfhcdkfhaP');
   const [selectedVendor, setSelectedVendor] = useState('Seaview Lodge hotel');
   const [selectedDiscount, setSelectedDiscount] = useState('15% OFF');
@@ -102,9 +107,10 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
     pdf.setTextColor(0, 0, 0);
     pdf.text('01 Sept 2025-08 Sept 2025', 30, yPos + 6);
     
-    // QR Code section - get the SVG and convert to data URL
+    // QR Code section - get the SVG or IMG and convert to data URL
     if (voucherRef.current) {
       const qrSvg = voucherRef.current.querySelector('svg');
+      const qrImg = voucherRef.current.querySelector('img');
       if (qrSvg) {
         const svgData = new XMLSerializer().serializeToString(qrSvg);
         const canvas = document.createElement('canvas');
@@ -140,7 +146,48 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
         };
         
         img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+      } else if (qrImg) {
+        const imgEl = qrImg as HTMLImageElement;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        
+        canvas.width = 100;
+        canvas.height = 100;
+        
+        img.onload = () => {
+          if (ctx) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 100, 100);
+            ctx.drawImage(img, 0, 0, 100, 100);
+            const qrDataUrl = canvas.toDataURL('image/png');
+            
+            // Add QR code to PDF
+            pdf.setDrawColor(139, 92, 246); // Indigo color
+            pdf.setLineWidth(1);
+            pdf.rect(130, 40, 40, 40); // Border
+            pdf.addImage(qrDataUrl, 'PNG', 132, 42, 36, 36);
+            
+            // Redemption text
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100);
+            pdf.text('Redemption', 150, 88, { align: 'center' });
+            pdf.setTextColor(0, 0, 0);
+            pdf.text('1/5', 150, 94, { align: 'center' });
+            
+            // Save the PDF
+            pdf.save('voucher.pdf');
+          }
+        };
+        
+        img.src = imgEl.src;
+      } else {
+        // No QR available - just save the PDF
+        pdf.save('voucher.pdf');
       }
+    } else {
+      pdf.save('voucher.pdf');
     }
   };
 
@@ -372,8 +419,13 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
                 {/* Right side - QR Code */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: '128px', height: '128px', border: '4px solid #8B5CF6', borderRadius: '8px', padding: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <QRCode value="https://example.com/voucher/12345" size={100} />
-                  </div>
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://example.com/voucher/12345')}`}
+                        alt="QR code"
+                        width={100}
+                        height={100}
+                      />
+                    </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Redemption</div>
                     <div style={{ fontSize: '14px', color: '#000000' }}>1/5</div>
