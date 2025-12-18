@@ -2,20 +2,15 @@ import { Eye, Edit2, Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Layout } from './Layout';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { ViewType } from '../App';
-import jsPDF from 'jspdf';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
-import { Label } from './ui/label';
-import { Input } from './ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
 const vouchers = [
-  { id: '#6252', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Beach Cleanup', amount: 'R1900.00', user: 'Manila Mayo', status: 'Redeemed', name: 'Beach Cleanup', vendor: 'Woolworths', discount: 'R1900.00', validity: 'Aug 20,2025', redemption: 'Manila Mayo' },
-  { id: '#6253', date: 'Aug 20,2025', corporate: 'Pick n Pay', campaign: 'Summer Drive', amount: 'R15 000.00', user: 'John Smith', status: 'Available', name: 'Summer Drive', vendor: 'Pick n Pay', discount: 'R15 000.00', validity: 'Aug 20,2025', redemption: 'John Smith' },
-  { id: '#6254', date: 'Aug 20,2025', corporate: 'Checkers', campaign: 'Winter Sale', amount: 'R15 000.00', user: 'Jane Doe', status: 'Expired', name: 'Winter Sale', vendor: 'Checkers', discount: 'R15 000.00', validity: 'Aug 20,2025', redemption: 'Jane Doe' },
-  { id: '#6255', date: 'Aug 20,2025', corporate: 'Shoprite', campaign: 'Black Friday', amount: 'R8 000.00', user: 'Bob Johnson', status: 'Redeemed', name: 'Black Friday', vendor: 'Shoprite', discount: 'R8 000.00', validity: 'Aug 20,2025', redemption: 'Bob Johnson' },
-  { id: '#6256', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Holiday Special', amount: 'R12 000.00', user: 'Alice Brown', status: 'Available', name: 'Holiday Special', vendor: 'Woolworths', discount: 'R12 000.00', validity: 'Aug 20,2025', redemption: 'Alice Brown' },
+  { id: '#6252', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Beach Cleanup', amount: 'R1900.00', user: 'Manila Mayo', status: 'Redeemed' },
+  { id: '#6253', date: 'Aug 20,2025', corporate: 'Pick n Pay', campaign: 'Summer Drive', amount: 'R15 000.00', user: 'John Smith', status: 'Available' },
+  { id: '#6254', date: 'Aug 20,2025', corporate: 'Checkers', campaign: 'Winter Sale', amount: 'R15 000.00', user: 'Jane Doe', status: 'Expired' },
+  { id: '#6255', date: 'Aug 20,2025', corporate: 'Shoprite', campaign: 'Black Friday', amount: 'R8 000.00', user: 'Bob Johnson', status: 'Redeemed' },
+  { id: '#6256', date: 'Aug 20,2025', corporate: 'Woolworths', campaign: 'Holiday Special', amount: 'R12 000.00', user: 'Alice Brown', status: 'Available' },
 ];
 
 const getStatusColor = (status: string) => {
@@ -39,7 +34,7 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
   const [viewVoucherOpen, setViewVoucherOpen] = useState(false);
   const [editVoucherOpen, setEditVoucherOpen] = useState(false);
   const [deleteVoucherOpen, setDeleteVoucherOpen] = useState(false);
-  const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(null);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
   const [voucherName, setVoucherName] = useState('Room_aasfhcdkfhaP');
   const [selectedVendor, setSelectedVendor] = useState('Seaview Lodge hotel');
   const [selectedDiscount, setSelectedDiscount] = useState('15% OFF');
@@ -377,12 +372,7 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
                 {/* Right side - QR Code */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ width: '128px', height: '128px', border: '4px solid #8B5CF6', borderRadius: '8px', padding: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://example.com/voucher/12345')}`}
-                      alt="QR Code"
-                      width={100}
-                      height={100}
-                    />
+                    <QRCode value="https://example.com/voucher/12345" size={100} />
                   </div>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Redemption</div>

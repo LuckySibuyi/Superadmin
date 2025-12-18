@@ -122,49 +122,49 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
           {/* User Overview */}
           <button
             onClick={() => onNavigate?.('members')}
-            className="p-6 bg-white border border-gray-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-6 bg-blue-50 border border-blue-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-gray-500 mb-2">User Overview</div>
-            <div className="text-3xl mb-1">1,200</div>
-            <div className="text-sm text-gray-600">Total Users</div>
+            <div className="text-sm text-blue-600 mb-2">User Overview</div>
+            <div className="text-3xl text-blue-600 mb-1">1,200</div>
+            <div className="text-sm text-blue-700">Total Users</div>
           </button>
 
           {/* Campaigns Overview */}
           <button
             onClick={() => onNavigate?.('campaigns')}
-            className="p-6 bg-white border border-gray-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-6 bg-purple-50 border border-purple-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-gray-500 mb-2">Campaigns Overview</div>
-            <div className="text-3xl mb-1">65</div>
+            <div className="text-sm text-[#8B5CF6] mb-2">Campaigns Overview</div>
+            <div className="text-3xl text-[#8B5CF6] mb-1">65</div>
             <div className="flex items-center gap-1.5">
               <Megaphone className="w-4 h-4 text-[#8B5CF6]" />
-              <span className="text-sm text-gray-600">Active</span>
+              <span className="text-sm text-purple-700">Active</span>
             </div>
           </button>
 
           {/* Vendors Overview */}
           <button
             onClick={() => onNavigate?.('vendors')}
-            className="p-6 bg-white border border-gray-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-6 bg-green-50 border border-green-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-gray-500 mb-2">Vendors Overview</div>
+            <div className="text-sm text-green-600 mb-2">Vendors Overview</div>
             <div className="text-3xl text-green-600 mb-1">80</div>
             <div className="flex items-center gap-1.5">
               <Building2 className="w-4 h-4 text-green-600" />
-              <span className="text-sm text-gray-600">Active Vendors</span>
+              <span className="text-sm text-green-700">Active Vendors</span>
             </div>
           </button>
 
           {/* Corporate Overview */}
           <button
             onClick={() => onNavigate?.('vouchers')}
-            className="p-6 bg-white border border-gray-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-6 bg-purple-50 border border-purple-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-gray-500 mb-2">Corporate Overview</div>
+            <div className="text-sm text-purple-600 mb-2">Corporate Overview</div>
             <div className="text-3xl text-purple-600 mb-1">100</div>
             <div className="flex items-center gap-1.5">
               <Gift className="w-4 h-4 text-purple-600" />
-              <span className="text-sm text-gray-600">Active available</span>
+              <span className="text-sm text-purple-700">Active available</span>
             </div>
           </button>
         </div>
