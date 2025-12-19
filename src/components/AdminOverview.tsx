@@ -1,8 +1,8 @@
 import { Card } from './ui/card';
 import { Button } from './ui/button';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Layout } from './Layout';
-import { Megaphone, Building2, Gift, CheckCircle2, User, Download } from 'lucide-react';
+import { Megaphone, Building2, Gift, CheckCircle2, User, Download, FileImage, FileText } from 'lucide-react';
 import { useRef, useState } from 'react';
 import QRCode from 'qrcode';
 import React from 'react';
@@ -10,49 +10,50 @@ import jsPDF from 'jspdf';
 import { ViewType } from '../App';
 
 const chartData = [
-  { month: 'Jan', value: 25, color: '#9575CD' },
-  { month: 'Feb', value: 28, color: '#7E57C2' },
-  { month: 'Mar', value: 32, color: '#5E35B1' },
-  { month: 'Apr', value: 35, color: '#673AB7' },
-  { month: 'May', value: 18, color: '#BA68C8' },
+  { month: 'Jan', campaigns: 25 },
+  { month: 'Feb', campaigns: 28 },
+  { month: 'Mar', campaigns: 32 },
+  { month: 'Apr', campaigns: 35 },
+  { month: 'May', campaigns: 18 },
 ];
 
-const recentActivity = [
+const activities = [
   { 
-    icon: 'document', 
-    text: 'CIPC document will expire in 5 days', 
+    id: 1,
+    icon: CheckCircle2, 
+    description: 'CIPC document will expire in 5 days', 
     time: '1 hour ago',
-    iconColor: '#10B981',
     link: 'reports' as ViewType
   },
   { 
-    icon: 'document', 
-    text: 'Monthly platform report is new available to view', 
+    id: 2,
+    icon: CheckCircle2, 
+    description: 'Monthly platform report is new available to view', 
     time: '4 hour ago',
-    iconColor: '#10B981',
     link: 'reports' as ViewType
   },
   { 
-    icon: 'user', 
-    text: 'New campaign has been created by user 001c5tP', 
+    id: 3,
+    icon: User, 
+    description: 'New campaign has been created by user 001c5tP', 
     time: '4 days ago',
-    iconColor: '#8B5CF6',
     link: 'campaigns' as ViewType
   },
   { 
-    icon: 'user', 
-    text: 'New campaign has been created by user 001c0tP', 
+    id: 4,
+    icon: User, 
+    description: 'New campaign has been created by user 001c0tP', 
     time: '4 days ago',
-    iconColor: '#8B5CF6',
     link: 'campaigns' as ViewType
   },
 ];
 
 interface AdminOverviewProps {
   onNavigate?: (view: ViewType) => void;
+  onMenuClick?: () => void;
 }
 
-export function AdminOverview({ onNavigate }: AdminOverviewProps) {
+export function AdminOverview({ onNavigate, onMenuClick }: AdminOverviewProps) {
   const qrCodeRef = useRef<HTMLCanvasElement>(null);
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
@@ -113,192 +114,154 @@ export function AdminOverview({ onNavigate }: AdminOverviewProps) {
   }, []);
 
   return (
-    <Layout onNavigate={onNavigate}>
-      <div className="p-6">
-        <h1 className="mb-6">Admin overview</h1>
+    <Layout onNavigate={onNavigate} onMenuClick={onMenuClick}>
+      <div className="p-3 sm:p-6 max-w-full overflow-hidden">
+        <h1 className="mb-4 sm:mb-6 text-xl sm:text-2xl">Admin overview</h1>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
           {/* User Overview */}
           <button
             onClick={() => onNavigate?.('members')}
-            className="p-6 bg-blue-50 border border-blue-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-4 sm:p-6 bg-blue-50 border border-blue-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-blue-600 mb-2">User Overview</div>
-            <div className="text-3xl text-blue-600 mb-1">1,200</div>
-            <div className="text-sm text-blue-700">Total Users</div>
+            <div className="text-xs sm:text-sm text-blue-600 mb-1 sm:mb-2">User Overview</div>
+            <div className="text-2xl sm:text-3xl text-blue-600 mb-1">1,200</div>
+            <div className="text-xs sm:text-sm text-blue-700">Total Users</div>
           </button>
 
           {/* Campaigns Overview */}
           <button
             onClick={() => onNavigate?.('campaigns')}
-            className="p-6 bg-purple-50 border border-purple-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-4 sm:p-6 bg-purple-50 border border-purple-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-[#8B5CF6] mb-2">Campaigns Overview</div>
-            <div className="text-3xl text-[#8B5CF6] mb-1">65</div>
+            <div className="text-xs sm:text-sm text-[#8B5CF6] mb-1 sm:mb-2">Campaigns Overview</div>
+            <div className="text-2xl sm:text-3xl text-[#8B5CF6] mb-1">65</div>
             <div className="flex items-center gap-1.5">
-              <Megaphone className="w-4 h-4 text-[#8B5CF6]" />
-              <span className="text-sm text-purple-700">Active</span>
+              <Megaphone className="w-3 h-3 sm:w-4 sm:h-4 text-[#8B5CF6]" />
+              <span className="text-xs sm:text-sm text-purple-700">Active</span>
             </div>
           </button>
 
           {/* Vendors Overview */}
           <button
             onClick={() => onNavigate?.('vendors')}
-            className="p-6 bg-green-50 border border-green-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-4 sm:p-6 bg-green-50 border border-green-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-green-600 mb-2">Vendors Overview</div>
-            <div className="text-3xl text-green-600 mb-1">80</div>
+            <div className="text-xs sm:text-sm text-green-600 mb-1 sm:mb-2">Vendors Overview</div>
+            <div className="text-2xl sm:text-3xl text-green-600 mb-1">80</div>
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-green-600" />
-              <span className="text-sm text-green-700">Active Vendors</span>
+              <Building2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+              <span className="text-xs sm:text-sm text-green-700">Active Vendors</span>
             </div>
           </button>
 
           {/* Corporate Overview */}
           <button
             onClick={() => onNavigate?.('vouchers')}
-            className="p-6 bg-purple-50 border border-purple-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
+            className="p-4 sm:p-6 bg-purple-50 border border-purple-100 shadow-sm rounded-lg text-left transition-all hover:shadow-md cursor-pointer"
           >
-            <div className="text-sm text-purple-600 mb-2">Corporate Overview</div>
-            <div className="text-3xl text-purple-600 mb-1">100</div>
+            <div className="text-xs sm:text-sm text-purple-600 mb-1 sm:mb-2">Corporate Overview</div>
+            <div className="text-2xl sm:text-3xl text-purple-600 mb-1">100</div>
             <div className="flex items-center gap-1.5">
-              <Gift className="w-4 h-4 text-purple-600" />
-              <span className="text-sm text-purple-700">Active available</span>
+              <Gift className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
+              <span className="text-xs sm:text-sm text-purple-700">Active available</span>
             </div>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Campaign Activity */}
-          <div className="p-6 bg-white border border-gray-100 shadow-sm rounded-lg lg:col-span-2">
-            <div className="flex items-start justify-between mb-6">
-              <h3 className="text-lg">Campaign activity</h3>
-              <div className="text-right flex-shrink-0">
-                <div className="text-sm text-gray-500 mb-1">Active Campaigns</div>
-                <div className="relative inline-flex items-center justify-center">
-                  <svg className="w-20 h-20 transform -rotate-90">
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      stroke="#E5E7EB"
-                      strokeWidth="6"
-                      fill="none"
-                    />
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="34"
-                      stroke="#8B5CF6"
-                      strokeWidth="6"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 34 * 0.32} ${2 * Math.PI * 34}`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute text-lg">32%</div>
-                </div>
-                <div className="text-sm text-[#8B5CF6] mt-1">+7.2%</div>
-              </div>
+        {/* Campaign Activity Chart and QR Code */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-6">
+          {/* Campaign Activity - Takes 2 columns on desktop */}
+          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base sm:text-lg">Campaign Activity</h2>
+              <button className="text-xs sm:text-sm text-[#8B5CF6] hover:underline">View all</button>
             </div>
-            <div className="h-[200px] w-full">
+            <div className="w-full h-[200px] sm:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="month" 
-                    axisLine={false} 
-                    tickLine={false}
-                    tick={{ fill: '#6B7280', fontSize: 12 }}
+                    tick={{ fontSize: 11 }}
                   />
                   <YAxis 
-                    axisLine={false} 
-                    tickLine={false}
-                    ticks={[0, 10, 20, 30, 40]}
-                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
+                    tick={{ fontSize: 11 }}
                   />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={32}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
+                  <Tooltip />
+                  <Line type="monotone" dataKey="campaigns" stroke="#8B5CF6" strokeWidth={2} />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Active this week */}
-          <div className="p-6 bg-white border border-gray-100 shadow-sm rounded-lg">
-            <div className="text-sm text-gray-500 mb-1">Active this week</div>
-            <div className="text-3xl mb-1">251</div>
-            <div className="text-sm text-gray-600 mb-6">New users this week</div>
-            <div className="flex justify-center mb-4">
-              <canvas 
-                ref={qrCodeRef}
-                className="border-2 border-white shadow-lg"
-                style={{ width: '140px', height: '140px' }}
-              />
-            </div>
-            <div className="relative">
-              <Button 
-                onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-                className="w-full bg-[#8363F2] hover:bg-[#6B51D4] text-white py-2.5 rounded-lg text-sm"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download QR
-              </Button>
-              
-              {showDownloadMenu && (
-                <>
-                  <div 
-                    className="fixed inset-0 z-10" 
-                    onClick={() => setShowDownloadMenu(false)}
-                  />
-                  <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden z-20">
-                    <button
-                      onClick={downloadQRCodePNG}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download as PNG
-                    </button>
-                    <div className="border-t border-gray-100" />
-                    <button
-                      onClick={downloadQRCodePDF}
-                      className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download as PDF
-                    </button>
-                  </div>
-                </>
-              )}
+          {/* QR Code Section */}
+          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg mb-4">Quick Access</h2>
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-50 p-3 sm:p-4 rounded-lg mb-3 sm:mb-4">
+                <canvas ref={qrCodeRef} className="w-32 h-32 sm:w-40 sm:h-40" />
+              </div>
+              <p className="text-xs sm:text-sm text-gray-600 text-center mb-3 sm:mb-4">
+                Scan to access dashboard
+              </p>
+              <div className="relative w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="w-full gap-2"
+                  onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="text-xs sm:text-sm">Download QR</span>
+                </Button>
+                {showDownloadMenu && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-10" 
+                      onClick={() => setShowDownloadMenu(false)}
+                    />
+                    <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
+                      <button
+                        onClick={downloadQRCodePNG}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      >
+                        <FileImage className="w-4 h-4" />
+                        Download as PNG
+                      </button>
+                      <button
+                        onClick={downloadQRCodePDF}
+                        className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Download as PDF
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="p-6 bg-white border border-gray-100 shadow-sm rounded-lg">
-          <h3 className="text-lg mb-4">Recent activity</h3>
-          <div className="space-y-3">
-            {recentActivity.map((activity, index) => (
-              <button
-                key={index}
-                onClick={() => onNavigate?.(activity.link)}
-                className="flex items-center gap-3 py-2 w-full text-left hover:bg-gray-50 rounded-lg px-2 -mx-2 transition-colors cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${activity.iconColor}20` }}>
-                  {activity.icon === 'document' ? (
-                    <CheckCircle2 className="w-5 h-5" style={{ color: activity.iconColor }} />
-                  ) : (
-                    <User className="w-5 h-5" style={{ color: activity.iconColor }} />
-                  )}
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base sm:text-lg">Recent Activity</h2>
+            <button className="text-xs sm:text-sm text-[#8B5CF6] hover:underline">View all</button>
+          </div>
+          <div className="space-y-3 sm:space-y-4">
+            {activities.map((activity) => (
+              <div key={activity.id} className="flex items-start gap-3 pb-3 sm:pb-4 border-b border-gray-100 last:border-0">
+                <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                  <activity.icon className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B5CF6]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">{activity.text}</p>
+                  <p className="text-xs sm:text-sm text-gray-900 mb-1 break-words">{activity.description}</p>
+                  <p className="text-xs text-gray-500">{activity.time}</p>
                 </div>
-                <span className="text-xs text-gray-500 flex-shrink-0">{activity.time}</span>
-              </button>
+              </div>
             ))}
           </div>
         </div>

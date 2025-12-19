@@ -7,8 +7,9 @@ import { VoucherManagement } from './components/VoucherManagement';
 import { TransactionManagement } from './components/TransactionManagement';
 import { ReportsAnalytic } from './components/ReportsAnalytic';
 import { UserManagement } from './components/UserManagement';
-import { UserProfile } from './components/UserProfile';
+import { AdminProfile } from './components/AdminProfile';
 import { CampaignDashboard } from './components/CampaignDashboard';
+import { Users } from './components/Users';
 
 export type ViewType = 
   | 'dashboard' 
@@ -21,12 +22,14 @@ export type ViewType =
   | 'members' 
   | 'profile'
   | 'social'
-  | 'draft';
+  | 'draft'
+  | 'users';
 
 export default function App() {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | undefined>(undefined);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleNavigate = (view: ViewType) => {
     setActiveView(view);
@@ -36,6 +39,8 @@ export default function App() {
     if (view !== 'transactions') {
       setSelectedTransactionId(undefined);
     }
+    // Close sidebar on navigation (mobile)
+    setSidebarOpen(false);
   };
 
   const handleViewCampaign = (campaignId: string) => {
@@ -73,36 +78,41 @@ export default function App() {
   }, []);
 
   const renderContent = () => {
+    const commonProps = {
+      onNavigate: handleNavigate,
+      onMenuClick: () => setSidebarOpen(true),
+    };
+
     switch (activeView) {
       case 'dashboard':
-        return <AdminOverview onNavigate={handleNavigate} />;
+        return <AdminOverview {...commonProps} />;
       
       case 'campaigns':
-        return <CampaignsManagement onViewCampaign={handleViewCampaign} onNavigate={handleNavigate} />;
+        return <CampaignsManagement onViewCampaign={handleViewCampaign} {...commonProps} />;
       
       case 'campaign-detail':
         return (
           <CampaignDashboard 
             headerImage="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop"
             onClose={handleCloseCampaign}
-            onNavigate={handleNavigate}
+            {...commonProps}
           />
         );
       
       case 'vouchers':
-        return <VoucherManagement onNavigate={handleNavigate} />;
+        return <VoucherManagement {...commonProps} />;
       
       case 'transactions':
-        return <TransactionManagement onNavigate={handleNavigate} selectedTransactionId={selectedTransactionId} />;
+        return <TransactionManagement {...commonProps} selectedTransactionId={selectedTransactionId} />;
       
       case 'reports':
-        return <ReportsAnalytic onNavigate={handleNavigate} />;
+        return <ReportsAnalytic {...commonProps} />;
       
       case 'members':
-        return <UserManagement onNavigate={handleNavigate} />;
+        return <UserManagement {...commonProps} />;
       
       case 'profile':
-        return <UserProfile onClose={() => handleNavigate('dashboard')} onNavigate={handleNavigate} />;
+        return <AdminProfile onClose={() => handleNavigate('dashboard')} {...commonProps} />;
       
       case 'vendors':
       case 'social':
@@ -115,15 +125,23 @@ export default function App() {
           </div>
         );
       
+      case 'users':
+        return <Users {...commonProps} />;
+      
       default:
-        return <AdminOverview onNavigate={handleNavigate} />;
+        return <AdminOverview {...commonProps} />;
     }
   };
 
   return (
     <AppProvider>
       <div className="flex min-h-screen overflow-hidden">
-        <Sidebar activeView={activeView} onNavigate={handleNavigate} />
+        <Sidebar 
+          activeView={activeView} 
+          onNavigate={handleNavigate} 
+          isOpen={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)} 
+        />
         {renderContent()}
       </div>
     </AppProvider>

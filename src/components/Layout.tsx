@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Bell, User as UserIcon, Plus, ArrowLeft, Search, ShoppingCart } from 'lucide-react';
+import { Bell, User as UserIcon, Plus, ArrowLeft, Search, ShoppingCart, Menu } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
@@ -16,6 +16,7 @@ interface LayoutProps {
   onCreateClick?: () => void;
   createButtonText?: string;
   onNavigate?: (view: ViewType) => void;
+  onMenuClick?: () => void;
 }
 
 export function Layout({
@@ -28,6 +29,7 @@ export function Layout({
   onCreateClick,
   createButtonText = 'Create',
   onNavigate,
+  onMenuClick,
 }: LayoutProps) {
   const { notifications } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -96,20 +98,32 @@ export function Layout({
   };
 
   return (
-    <div className="flex-1 bg-[#F5F5FA] flex flex-col">
+    <div className="flex-1 bg-[#F5F5FA] flex flex-col min-w-0">
       {/* Header */}
-      <div className="bg-white border-b border-[#E5E5E5] px-6 py-3 flex items-center justify-between flex-shrink-0 h-[64px]">
-        <div className="flex items-center gap-4 flex-1">
+      <div className="bg-white border-b border-[#E5E5E5] px-3 sm:px-6 py-3 flex items-center justify-between flex-shrink-0 h-[64px]">
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+          {/* Mobile menu button */}
+          {onMenuClick && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden w-10 h-10 hover:bg-gray-100 flex-shrink-0"
+              onClick={onMenuClick}
+            >
+              <Menu className="w-5 h-5 text-gray-700" />
+            </Button>
+          )}
+          
           {showBackButton && onBack && (
-            <Button variant="ghost" size="icon" onClick={onBack}>
+            <Button variant="ghost" size="icon" onClick={onBack} className="flex-shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           )}
           
-          {title && <h1 className="text-xl">{title}</h1>}
+          {title && <h1 className="text-base sm:text-xl truncate">{title}</h1>}
           
           {showSearch && (
-            <div className="relative flex-1 max-w-md ml-4">
+            <div className="relative flex-1 max-w-md ml-4 hidden md:block">
               <Input
                 placeholder="Search"
                 className="pl-4 pr-10 bg-[#F5F5FA] border-0 rounded-lg h-10 text-sm shadow-[inset_-2px_-2px_4px_0px_rgba(255,255,255,0.5),inset_2px_2px_4px_0px_rgba(170,170,204,0.25)]"
@@ -121,14 +135,14 @@ export function Layout({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
           {showCreateButton && (
             <Button 
-              className="bg-[#8363F2] hover:bg-[#6B51D4] text-white px-4 py-2 h-10 rounded-lg"
+              className="bg-[#8363F2] hover:bg-[#6B51D4] text-white px-2 sm:px-4 py-2 h-10 rounded-lg text-xs sm:text-sm"
               onClick={onCreateClick}
             >
-              <Plus className="w-4 h-4 mr-2" />
-              {createButtonText}
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{createButtonText}</span>
             </Button>
           )}
           
@@ -153,7 +167,7 @@ export function Layout({
                   className="fixed inset-0 z-10" 
                   onClick={() => setShowNotifications(false)}
                 />
-                <div className="absolute right-0 top-full mt-2 w-[380px] bg-white rounded-lg shadow-lg border border-gray-200 z-20 max-h-[500px] overflow-hidden">
+                <div className="absolute right-0 top-full mt-2 w-[90vw] sm:w-[380px] bg-white rounded-lg shadow-lg border border-gray-200 z-20 max-h-[500px] overflow-hidden">
                   <div className="px-4 py-3 border-b border-gray-200">
                     <h3 className="font-semibold text-gray-900">Notifications</h3>
                     <p className="text-xs text-gray-500 mt-0.5">{notifications} new notifications</p>
@@ -195,14 +209,14 @@ export function Layout({
             )}
           </div>
           
-          <Button variant="ghost" size="icon" className="w-10 h-10 hover:bg-gray-100">
+          <Button variant="ghost" size="icon" className="w-10 h-10 hover:bg-gray-100 hidden sm:flex">
             <ShoppingCart className="w-5 h-5 text-gray-700" />
           </Button>
           
           <Button 
             variant="ghost" 
             size="icon" 
-            className="w-10 h-10 hover:bg-gray-100"
+            className="w-10 h-10 hover:bg-gray-100 hidden sm:flex"
             onClick={() => onNavigate?.('profile')}
           >
             <UserIcon className="w-5 h-5 text-gray-700" />

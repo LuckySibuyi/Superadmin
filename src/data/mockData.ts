@@ -77,7 +77,7 @@ export const users = [
   { 
     id: '2',
     name: 'John Smith', 
-    email: 'JoshuaBlla@gamil.com', 
+    email: 'john.smith@gmail.com', 
     role: 'User', 
     status: 'Active', 
     lastLogin: '11/08/2025', 
@@ -86,8 +86,8 @@ export const users = [
   },
   { 
     id: '3',
-    name: 'John Smith', 
-    email: 'JoshuaBlla@gamil.com', 
+    name: 'Sarah Johnson', 
+    email: 'sarah.johnson@gmail.com', 
     role: 'User', 
     status: 'Suspended', 
     lastLogin: '11/08/2025', 
@@ -97,7 +97,7 @@ export const users = [
   { 
     id: '4',
     name: 'Seaview lodge', 
-    email: 'JoshuaBlla@gamil.com', 
+    email: 'info@seaviewlodge.co.za', 
     role: 'Vendor', 
     status: 'Active', 
     lastLogin: '11/08/2025', 
@@ -107,7 +107,7 @@ export const users = [
   { 
     id: '5',
     name: 'Tastobites', 
-    email: 'JoshuaBlla@gamil.com', 
+    email: 'contact@tastobites.co.za', 
     role: 'Vendor', 
     status: 'Active', 
     lastLogin: '11/08/2025', 
@@ -116,12 +116,72 @@ export const users = [
   },
   { 
     id: '6',
-    name: 'John Smith', 
-    email: 'JoshuaBlla@gamil.com', 
+    name: 'TechCorp Solutions', 
+    email: 'admin@techcorp.co.za', 
     role: 'Corporate', 
     status: 'Active', 
     lastLogin: '11/08/2025', 
     ratings: 'R1000', 
+    comment: 'Text' 
+  },
+  { 
+    id: '7',
+    name: 'Michael Brown', 
+    email: 'mbrown@gmail.com', 
+    role: 'User', 
+    status: 'Active', 
+    lastLogin: '10/08/2025', 
+    ratings: 'R750', 
+    comment: 'Text' 
+  },
+  { 
+    id: '8',
+    name: 'Paradise Motel', 
+    email: 'bookings@paradisemotel.co.za', 
+    role: 'Vendor', 
+    status: 'Active', 
+    lastLogin: '09/08/2025', 
+    ratings: 'R2500', 
+    comment: 'Text' 
+  },
+  { 
+    id: '9',
+    name: 'Global Finance Inc', 
+    email: 'hr@globalfinance.co.za', 
+    role: 'Corporate', 
+    status: 'Active', 
+    lastLogin: '08/08/2025', 
+    ratings: 'R5000', 
+    comment: 'Text' 
+  },
+  { 
+    id: '10',
+    name: 'Emma Davis', 
+    email: 'emma.davis@gmail.com', 
+    role: 'User', 
+    status: 'Active', 
+    lastLogin: '07/08/2025', 
+    ratings: 'R300', 
+    comment: 'Text' 
+  },
+  { 
+    id: '11',
+    name: 'Adventure Tours SA', 
+    email: 'info@adventuretours.co.za', 
+    role: 'Vendor', 
+    status: 'Suspended', 
+    lastLogin: '05/08/2025', 
+    ratings: 'R1800', 
+    comment: 'Text' 
+  },
+  { 
+    id: '12',
+    name: 'Retail Dynamics Corp', 
+    email: 'corporate@retaildynamics.co.za', 
+    role: 'Corporate', 
+    status: 'Active', 
+    lastLogin: '03/08/2025', 
+    ratings: 'R3200', 
     comment: 'Text' 
   },
 ];

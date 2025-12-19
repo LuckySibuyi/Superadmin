@@ -43,9 +43,10 @@ const reportsData = [
 
 interface ReportsAnalyticProps {
   onNavigate?: (view: ViewType) => void;
+  onMenuClick?: () => void;
 }
 
-export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
+export function ReportsAnalytic({ onNavigate, onMenuClick }: ReportsAnalyticProps) {
   const [reports, setReports] = useState(reportsData);
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'user'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -197,9 +198,9 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
   };
 
   return (
-    <Layout onNavigate={onNavigate}>
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
+    <Layout onNavigate={onNavigate} onMenuClick={onMenuClick}>
+      <div className="p-3 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
           <div>
             <h1 className="mb-2">Reports & Analytic</h1>
             <div className="flex gap-2">
@@ -208,14 +209,15 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
               </Button>
             </div>
           </div>
-          <div className="flex gap-2 relative">
+          <div className="flex gap-2 relative flex-wrap">
             <div className="relative">
               <Button
                 variant="outline"
                 className="gap-2"
                 onClick={() => setShowSortMenu(!showSortMenu)}
               >
-                Sort by
+                <span className="hidden sm:inline">Sort by</span>
+                <ArrowUpDown className="w-4 h-4 sm:hidden" />
                 <ChevronDown className="w-4 h-4 ml-2" />
               </Button>
               {showSortMenu && (
@@ -230,10 +232,11 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
                         <Label className="text-xs text-gray-600 mb-1 block">Sort By</Label>
                         <Select
                           value={sortBy}
-                          onValueChange={(value: string) => setSortBy(value as 'name' | 'date' | 'user')}
+                          onValueChange={(value) => setSortBy(value as 'name' | 'date' | 'user')}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue /></SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="name">Name</SelectItem>
                             <SelectItem value="date">Date</SelectItem>
@@ -245,10 +248,11 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
                         <Label className="text-xs text-gray-600 mb-1 block">Order</Label>
                         <Select
                           value={sortOrder}
-                          onValueChange={(value: string) => setSortOrder(value as 'asc' | 'desc')}
+                          onValueChange={(value) => setSortOrder(value as 'asc' | 'desc')}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue /></SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="asc">Ascending</SelectItem>
                             <SelectItem value="desc">Descending</SelectItem>
@@ -269,37 +273,37 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
             </div>
             <Button variant="outline" className="gap-2" onClick={exportToExcel}>
               <FileSpreadsheet className="w-4 h-4" />
-              Excel
+              <span className="hidden sm:inline">Excel</span>
             </Button>
             <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2" onClick={exportToPDF}>
               <FileText className="w-4 h-4" />
-              PDF
+              <span className="hidden sm:inline">PDF</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-6 mb-6">
-          <div className="bg-white rounded-lg p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="bg-white rounded-lg p-4 sm:p-6">
             <div className="text-sm text-gray-600 mb-2">Total Active users</div>
             <div className="text-3xl mb-1">1,200</div>
             <div className="text-sm text-gray-600">Total Users</div>
           </div>
-          <div className="bg-white rounded-lg p-6">
+          <div className="bg-white rounded-lg p-4 sm:p-6">
             <div className="text-sm text-gray-600 mb-2">Total Active Campaigns</div>
             <div className="text-3xl mb-1">800</div>
             <div className="text-sm text-green-600">Active Campaigns</div>
           </div>
-          <div className="bg-white rounded-lg p-6">
+          <div className="bg-white rounded-lg p-4 sm:p-6">
             <div className="text-sm text-gray-600 mb-2">Total Contribution</div>
             <div className="text-3xl">R249.500</div>
           </div>
         </div>
 
         {/* Charts Row */}
-        <div className="grid grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
           {/* Contribution over time */}
-          <div className="bg-white rounded-lg p-6">
+          <div className="bg-white rounded-lg p-4 sm:p-6">
             <h3 className="mb-4">Contribution over time</h3>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={contributionData}>
@@ -312,7 +316,7 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
           </div>
 
           {/* Top Vendors/Corporates */}
-          <div className="bg-white rounded-lg p-6">
+          <div className="bg-white rounded-lg p-4 sm:p-6">
             <h3 className="mb-4">Top Vendors/Corporates</h3>
             <div className="space-y-3">
               {vendorsData.map((vendor, index) => (
@@ -337,9 +341,9 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
           </div>
 
           {/* Campaign Categories */}
-          <div className="bg-white rounded-lg p-6">
+          <div className="bg-white rounded-lg p-4 sm:p-6">
             <h3 className="mb-4">Campaign Categories</h3>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <ResponsiveContainer width={150} height={150}>
                 <PieChart>
                   <Pie
@@ -371,41 +375,96 @@ export function ReportsAnalytic({ onNavigate }: ReportsAnalyticProps) {
           </div>
         </div>
 
-        {/* Reports Table */}
-        <div className="bg-white rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm">Report</th>
-                <th className="px-6 py-3 text-left text-sm">Value</th>
-                <th className="px-6 py-3 text-left text-sm">Date</th>
-                <th className="px-6 py-3 text-left text-sm">User</th>
-                <th className="px-6 py-3 text-left text-sm">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedReports.map((report, index) => (
-                <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm">{report.name}</td>
-                  <td className="px-6 py-4 text-sm">{report.value}</td>
-                  <td className="px-6 py-4 text-sm">{report.date}</td>
-                  <td className="px-6 py-4 text-sm">{report.user}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      <Button className="bg-indigo-600 hover:bg-indigo-700 gap-2" onClick={() => downloadReport(report.name)}>
-                        <FileDown className="w-4 h-4" />
-                        Download Report
-                      </Button>
-                      <Button variant="outline" className="gap-2" onClick={() => handleScheduleReport(report.name)}>
-                        <Calendar className="w-4 h-4" />
-                        Schedule Report
-                      </Button>
-                    </div>
-                  </td>
+        {/* Reports Table - Desktop */}
+        <div className="bg-white rounded-lg overflow-hidden hidden md:block">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-sm whitespace-nowrap">Report</th>
+                  <th className="px-6 py-3 text-left text-sm whitespace-nowrap">Value</th>
+                  <th className="px-6 py-3 text-left text-sm whitespace-nowrap">Date</th>
+                  <th className="px-6 py-3 text-left text-sm whitespace-nowrap hidden lg:table-cell">User</th>
+                  <th className="px-6 py-3 text-left text-sm whitespace-nowrap">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {sortedReports.map((report, index) => (
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm">{report.name}</td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">{report.value}</td>
+                    <td className="px-6 py-4 text-sm whitespace-nowrap">{report.date}</td>
+                    <td className="px-6 py-4 text-sm hidden lg:table-cell">{report.user}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm"
+                          className="bg-indigo-600 hover:bg-indigo-700 gap-2" 
+                          onClick={() => downloadReport(report.name)}
+                        >
+                          <FileDown className="w-4 h-4" />
+                          Download Report
+                        </Button>
+                        <Button 
+                          size="sm"
+                          variant="outline" 
+                          className="gap-2" 
+                          onClick={() => handleScheduleReport(report.name)}
+                        >
+                          <Calendar className="w-4 h-4" />
+                          Schedule Report
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Reports Cards - Mobile */}
+        <div className="md:hidden space-y-3">
+          {sortedReports.map((report, index) => (
+            <div key={index} className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+              <div className="mb-3">
+                <h3 className="text-sm font-medium text-gray-900 mb-2">{report.name}</h3>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600">Value:</span>
+                    <span className="font-medium">{report.value}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600">Date:</span>
+                    <span className="font-medium">{report.date}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-600">User:</span>
+                    <span className="font-medium">{report.user}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm"
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-700 gap-1 text-xs" 
+                  onClick={() => downloadReport(report.name)}
+                >
+                  <FileDown className="w-3 h-3" />
+                  Download
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline" 
+                  className="flex-1 gap-1 text-xs" 
+                  onClick={() => handleScheduleReport(report.name)}
+                >
+                  <Calendar className="w-3 h-3" />
+                  Schedule
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

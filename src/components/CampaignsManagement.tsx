@@ -5,21 +5,33 @@ import { Layout } from './Layout';
 import { campaigns, campaignStats } from '../data/mockData';
 import { getStatusColor, formatCurrency } from '../utils/formatters';
 import { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
 import { ViewType } from '../App';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 interface CampaignsManagementProps {
   onViewCampaign?: (campaignId: string) => void;
   onNavigate?: (view: ViewType) => void;
+  onMenuClick?: () => void;
 }
 
 type FilterType = 'all' | 'active' | 'best-campaigns' | 'best-vendors';
 type SortType = 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc' | 'raised-desc' | 'raised-asc' | 'vendors-desc' | 'vendors-asc';
 
-export function CampaignsManagement({ onViewCampaign, onNavigate }: CampaignsManagementProps) {
+export function CampaignsManagement({ onViewCampaign, onNavigate, onMenuClick }: CampaignsManagementProps) {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('date-desc');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [campaignName, setCampaignName] = useState('');
+  const [campaignGoal, setCampaignGoal] = useState('');
+  const [campaignDescription, setCampaignDescription] = useState('');
+  const [campaignCategory, setCampaignCategory] = useState('');
+  const [campaignEndDate, setCampaignEndDate] = useState('');
   const sortMenuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -105,7 +117,14 @@ export function CampaignsManagement({ onViewCampaign, onNavigate }: CampaignsMan
   };
 
   return (
-    <Layout onNavigate={onNavigate}>
+    <Layout 
+      onNavigate={onNavigate} 
+      onMenuClick={onMenuClick}
+      showCreateButton={true}
+      onCreateClick={() => setCreateDialogOpen(true)}
+      createButtonText="Create Campaign"
+      showSearch={false}
+    >
       <div className="p-6">
         <h1 className="mb-6">Campaigns Management</h1>
 
@@ -273,6 +292,85 @@ export function CampaignsManagement({ onViewCampaign, onNavigate }: CampaignsMan
           )}
         </div>
       </div>
+
+      {/* Create Campaign Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Campaign</DialogTitle>
+            <DialogDescription className="sr-only">
+              Create a new campaign
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="campaign-name">Campaign Name</Label>
+              <Input
+                id="campaign-name"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                className="mt-1"
+                placeholder="Enter campaign name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="campaign-goal">Funding Goal</Label>
+              <Input
+                id="campaign-goal"
+                type="number"
+                value={campaignGoal}
+                onChange={(e) => setCampaignGoal(e.target.value)}
+                className="mt-1"
+                placeholder="Enter funding goal (R)"
+              />
+            </div>
+            <div>
+              <Label htmlFor="campaign-category">Category</Label>
+              <Select value={campaignCategory} onValueChange={setCampaignCategory}>
+                <SelectTrigger id="campaign-category" className="mt-1">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="education">Education</SelectItem>
+                  <SelectItem value="health">Health</SelectItem>
+                  <SelectItem value="community">Community</SelectItem>
+                  <SelectItem value="environment">Environment</SelectItem>
+                  <SelectItem value="technology">Technology</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="campaign-end-date">End Date</Label>
+              <Input
+                id="campaign-end-date"
+                type="date"
+                value={campaignEndDate}
+                onChange={(e) => setCampaignEndDate(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="campaign-description">Description</Label>
+              <Textarea
+                id="campaign-description"
+                value={campaignDescription}
+                onChange={(e) => setCampaignDescription(e.target.value)}
+                className="mt-1 min-h-[100px] resize-none"
+                placeholder="Enter campaign description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED]" onClick={() => setCreateDialogOpen(false)}>
+              Create Campaign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

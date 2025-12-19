@@ -1,21 +1,23 @@
-import { Eye, Edit2, Trash2 } from 'lucide-react';
+import { Eye, Edit2, Trash2, Plus } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Layout } from './Layout';
-import { useRef, useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ViewType } from '../App';
-import jsPDF from 'jspdf';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
 import { Label } from './ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Input } from './ui/input';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
+import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 
 const vouchers = [
-  { id: '#6252', name: 'Beach Cleanup', vendor: 'Woolworths', discount: 'R1900.00', validity: 'Aug 20, 2025', redemption: '1/5', status: 'Redeemed' },
-  { id: '#6253', name: 'Summer Drive', vendor: 'Pick n Pay', discount: 'R15 000.00', validity: 'Aug 20, 2025', redemption: '0/1', status: 'Active' },
-  { id: '#6254', name: 'Winter Sale', vendor: 'Checkers', discount: 'R15 000.00', validity: 'Aug 20, 2025', redemption: '0/1', status: 'Expired' },
-  { id: '#6255', name: 'Black Friday', vendor: 'Shoprite', discount: 'R8 000.00', validity: 'Aug 20, 2025', redemption: '2/5', status: 'Redeemed' },
-  { id: '#6256', name: 'Holiday Special', vendor: 'Woolworths', discount: 'R12 000.00', validity: 'Aug 20, 2025', redemption: '0/1', status: 'Active' },
+  { id: '#6252', name: 'Beach_Cleanup_V001', vendor: 'Woolworths', discount: '15% OFF', validity: '01 Sept 2025-08 Sept 2025', status: 'Redeemed', redemption: '3/5' },
+  { id: '#6253', name: 'Summer_Drive_V002', vendor: 'Pick n Pay', discount: '20% OFF', validity: '15 Aug 2025-20 Aug 2025', status: 'Available', redemption: '0/10' },
+  { id: '#6254', name: 'Winter_Sale_V003', vendor: 'Checkers', discount: 'R100 OFF', validity: '10 Jul 2025-15 Jul 2025', status: 'Expired', redemption: '5/5' },
+  { id: '#6255', name: 'Black_Friday_V004', vendor: 'Shoprite', discount: '25% OFF', validity: '20 Nov 2025-30 Nov 2025', status: 'Active', redemption: '2/8' },
+  { id: '#6256', name: 'Holiday_Special_V005', vendor: 'Woolworths', discount: 'R200 OFF', validity: '15 Dec 2025-31 Dec 2025', status: 'Active', redemption: '1/12' },
 ];
 
 const getStatusColor = (status: string) => {
@@ -33,12 +35,14 @@ const getStatusColor = (status: string) => {
 
 interface VoucherManagementProps {
   onNavigate?: (view: ViewType) => void;
+  onMenuClick?: () => void;
 }
 
-export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
+export function VoucherManagement({ onNavigate, onMenuClick }: VoucherManagementProps) {
   const [viewVoucherOpen, setViewVoucherOpen] = useState(false);
   const [editVoucherOpen, setEditVoucherOpen] = useState(false);
   const [deleteVoucherOpen, setDeleteVoucherOpen] = useState(false);
+  const [createVoucherOpen, setCreateVoucherOpen] = useState(false);
   const [selectedVoucherId, setSelectedVoucherId] = useState<string | null>(null);
   const [voucherName, setVoucherName] = useState('Room_aasfhcdkfhaP');
   const [selectedVendor, setSelectedVendor] = useState('Seaview Lodge hotel');
@@ -51,7 +55,23 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const [vouchersList, setVouchersList] = useState(vouchers);
 
-  const voucherRef = useRef<HTMLDivElement>(null);
+  const qrCodeRef = useRef<HTMLCanvasElement>(null);
+
+  // Generate QR code when dialog opens
+  useEffect(() => {
+    if (viewVoucherOpen && qrCodeRef.current) {
+      QRCode.toCanvas(qrCodeRef.current, 'https://example.com/voucher/12345', {
+        width: 100,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+      }).catch(err => {
+        console.error('Error generating QR code:', err);
+      });
+    }
+  }, [viewVoucherOpen]);
 
   // Calculate counts based on actual data
   const totalVouchers = vouchersList.length;
@@ -107,93 +127,38 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
     pdf.setTextColor(0, 0, 0);
     pdf.text('01 Sept 2025-08 Sept 2025', 30, yPos + 6);
     
-    // QR Code section - get the SVG or IMG and convert to data URL
-    if (voucherRef.current) {
-      const qrSvg = voucherRef.current.querySelector('svg');
-      const qrImg = voucherRef.current.querySelector('img');
-      if (qrSvg) {
-        const svgData = new XMLSerializer().serializeToString(qrSvg);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        
-        canvas.width = 100;
-        canvas.height = 100;
-        
-        img.onload = () => {
-          if (ctx) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 100, 100);
-            ctx.drawImage(img, 0, 0, 100, 100);
-            const qrDataUrl = canvas.toDataURL('image/png');
-            
-            // Add QR code to PDF
-            pdf.setDrawColor(139, 92, 246); // Indigo color
-            pdf.setLineWidth(1);
-            pdf.rect(130, 40, 40, 40); // Border
-            pdf.addImage(qrDataUrl, 'PNG', 132, 42, 36, 36);
-            
-            // Redemption text
-            pdf.setFontSize(10);
-            pdf.setTextColor(100, 100, 100);
-            pdf.text('Redemption', 150, 88, { align: 'center' });
-            pdf.setTextColor(0, 0, 0);
-            pdf.text('1/5', 150, 94, { align: 'center' });
-            
-            // Save the PDF
-            pdf.save('voucher.pdf');
-          }
-        };
-        
-        img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
-      } else if (qrImg) {
-        const imgEl = qrImg as HTMLImageElement;
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        img.crossOrigin = 'Anonymous';
-        
-        canvas.width = 100;
-        canvas.height = 100;
-        
-        img.onload = () => {
-          if (ctx) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 100, 100);
-            ctx.drawImage(img, 0, 0, 100, 100);
-            const qrDataUrl = canvas.toDataURL('image/png');
-            
-            // Add QR code to PDF
-            pdf.setDrawColor(139, 92, 246); // Indigo color
-            pdf.setLineWidth(1);
-            pdf.rect(130, 40, 40, 40); // Border
-            pdf.addImage(qrDataUrl, 'PNG', 132, 42, 36, 36);
-            
-            // Redemption text
-            pdf.setFontSize(10);
-            pdf.setTextColor(100, 100, 100);
-            pdf.text('Redemption', 150, 88, { align: 'center' });
-            pdf.setTextColor(0, 0, 0);
-            pdf.text('1/5', 150, 94, { align: 'center' });
-            
-            // Save the PDF
-            pdf.save('voucher.pdf');
-          }
-        };
-        
-        img.src = imgEl.src;
-      } else {
-        // No QR available - just save the PDF
-        pdf.save('voucher.pdf');
-      }
-    } else {
-      pdf.save('voucher.pdf');
+    // Add QR code from canvas
+    if (qrCodeRef.current) {
+      const qrDataUrl = qrCodeRef.current.toDataURL('image/png');
+      
+      // Add QR code to PDF
+      pdf.setDrawColor(139, 92, 246); // Indigo color
+      pdf.setLineWidth(1);
+      pdf.rect(130, 40, 40, 40); // Border
+      pdf.addImage(qrDataUrl, 'PNG', 132, 42, 36, 36);
+      
+      // Redemption text
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text('Redemption', 150, 88, { align: 'center' });
+      pdf.setTextColor(0, 0, 0);
+      pdf.text('1/5', 150, 94, { align: 'center' });
     }
+    
+    // Save the PDF
+    pdf.save('voucher.pdf');
   };
 
   return (
     <>
-      <Layout onNavigate={onNavigate}>
+      <Layout 
+        onNavigate={onNavigate} 
+        onMenuClick={onMenuClick}
+        showCreateButton={true}
+        onCreateClick={() => setCreateVoucherOpen(true)}
+        createButtonText="Create Voucher"
+        showSearch={false}
+      >
         <div className="p-6 bg-[#F5F5FA] min-h-full">
           <h1 className="mb-6">Voucher Management</h1>
 
@@ -391,43 +356,38 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4 bg-white">
-            <div ref={voucherRef} style={{ padding: '20px', backgroundColor: '#ffffff' }}>
+            <div style={{ padding: '20px', backgroundColor: '#ffffff' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 {/* Left side - Details */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
-                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Voucher name</div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#6b7280' }}>Voucher name</div>
                     <div style={{ fontSize: '14px', color: '#000000' }}>Room_aasfhcdchfhbP</div>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Vendor</div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#6b7280' }}>Vendor</div>
                     <div style={{ fontSize: '14px', color: '#000000' }}>Seaview Lodge hotel</div>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Discount/value</div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#6b7280' }}>Discount/value</div>
                     <div style={{ fontSize: '14px', color: '#000000' }}>15% OFF</div>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Validity</div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#6b7280' }}>Validity</div>
                     <div style={{ fontSize: '14px', color: '#000000' }}>01 Sept 2025-08 Sept 2025</div>
                   </div>
                 </div>
 
                 {/* Right side - QR Code */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ width: '128px', height: '128px', border: '4px solid #8B5CF6', borderRadius: '8px', padding: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <img
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent('https://example.com/voucher/12345')}`}
-                        alt="QR code"
-                        width={100}
-                        height={100}
-                      />
-                    </div>
+                  <div style={{ width: '120px', height: '120px', border: '4px solid #8B5CF6', borderRadius: '8px', padding: '8px', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
+                    <canvas ref={qrCodeRef} className="w-full h-full" />
+                  </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#000000' }}>Redemption</div>
+                    <div style={{ fontSize: '14px', marginBottom: '4px', color: '#6b7280' }}>Redemption</div>
                     <div style={{ fontSize: '14px', color: '#000000' }}>1/5</div>
                   </div>
                 </div>
@@ -556,6 +516,97 @@ export function VoucherManagement({ onNavigate }: VoucherManagementProps) {
               setDeleteVoucherOpen(false);
             }}>
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Voucher Dialog */}
+      <Dialog open={createVoucherOpen} onOpenChange={setCreateVoucherOpen}>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Voucher</DialogTitle>
+            <DialogDescription className="sr-only">
+              Create a new voucher
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="create-voucher-name">Voucher Name</Label>
+              <Input
+                id="create-voucher-name"
+                className="mt-1"
+                placeholder="Enter voucher name"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="create-vendor">Vendor</Label>
+              <Select>
+                <SelectTrigger id="create-vendor" className="mt-1">
+                  <SelectValue placeholder="Select vendor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="seaview">Seaview Lodge hotel</SelectItem>
+                  <SelectItem value="paradise">Paradise Motel</SelectItem>
+                  <SelectItem value="beach">South Beach Hotel</SelectItem>
+                  <SelectItem value="woolworths">Woolworths</SelectItem>
+                  <SelectItem value="picknpay">Pick n Pay</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="create-discount">Discount/Value</Label>
+              <Select>
+                <SelectTrigger id="create-discount" className="mt-1">
+                  <SelectValue placeholder="Select discount" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15off">15% OFF</SelectItem>
+                  <SelectItem value="20off">20% OFF</SelectItem>
+                  <SelectItem value="25off">25% OFF</SelectItem>
+                  <SelectItem value="r100">R100 OFF</SelectItem>
+                  <SelectItem value="r200">R200 OFF</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="create-start-date">Start Date</Label>
+                <Input
+                  id="create-start-date"
+                  type="date"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="create-end-date">End Date</Label>
+                <Input
+                  id="create-end-date"
+                  type="date"
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="create-redemption-limit">Redemption Limit</Label>
+              <Input
+                id="create-redemption-limit"
+                type="number"
+                className="mt-1"
+                placeholder="Enter maximum redemptions"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateVoucherOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED]" onClick={() => setCreateVoucherOpen(false)}>
+              Create Voucher
             </Button>
           </DialogFooter>
         </DialogContent>
