@@ -227,7 +227,7 @@ export function Users({ onNavigate, onMenuClick }: UsersProps) {
                 />
               </div>
             </div>
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as UserType)} className="w-full sm:w-auto">
+            <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as UserType)} className="w-full sm:w-auto">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="User">Users</TabsTrigger>
